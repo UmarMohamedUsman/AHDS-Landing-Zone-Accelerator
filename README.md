@@ -2,13 +2,19 @@
 
 This repo is for building secure landing zone accelerator for Azure Health Data Services (AHDS) and to integrate with various Azure Services.
 
-[AHDS Landing Zone Architecture](./media/AHDS%20Reference%20Architecture.png)
+![AHDS Landing Zone Architecture](./media/AHDS%20Reference%20Architecture.png)
+
+### Introduction
 
 Security is a paramount concern for Healthcare customers as they deal with Protected Health Information. Goal of this hackathon project is to come up with secure landing zone for deploying Azure Health Data Services (AHDS).
 
 Currently we've no reference architecture in Azure Architecture Center for deploying AHDS and integrating with various Azure Services in a typical enterprise environment with security in mind. This has been a huge pain point for customers looking to deploy AHDS following Microsoft recommended best practices and continue to hinder AHDS adoption.
 
-Once we have the reference architecture deployed successfully, we will be able to receive FHIR messages securely over a TLS connection through Application Gateway and successfully persist in AHDS. Then FHIR Sync Agent reads data from AHDS, convert to Parquet files and writes it to Azure Data Lake Gen2. Using Azure Synapse connect to Data Lake to query and analyze FHIR data.
+### Usecase
+
+Once we have the reference architecture deployed successfully, we will be able to receive FHIR messages (individually/bulk) securely over a TLS connection through Application Gateway and successfully persist in AHDS. Then FHIR Sync Agent reads data from AHDS, convert to Parquet files and writes it to Azure Data Lake Gen2. Azure Synapse can connect to Data Lake to query and analyze FHIR data.
+
+### Details:
 
 - Typical Hub & Spoke network architecture to align with Cloud Adoption Framework Landing Zone design principles
 - Data hitting Application Gateway should be in FHIR format. Ingestion pipeline to transform HL7 v2 to FHIR or C-CDA to FHIR will be added to this architecture eventually
@@ -19,7 +25,7 @@ Once we have the reference architecture deployed successfully, we will be able t
 - Azure Key Vault with private endpoint to securely store client secrets, Application Gateway certificates, etc.
 - Application Gateway securely loads bulk data into storage account.
 - Azure Storage Account with private endpoint for securely bulk loading FHIR data.
-- Using VNet integration FHIR loader Function gets notification through Event Grid (as bulk data gets loaded) to bulk load data from Azure storage in to AHDS
+- Using VNet integration FHIR loader Function directly listen/pulls bulk data directly from blob storage behind private endpoint and loads it in to AHDS.
 - Azure Container Registry with private endpoint for securely storing customized Liquid templates
 - Azure Active Directory for FHIR API Authentication and RBAC
 - Application Insights for Monitoring
