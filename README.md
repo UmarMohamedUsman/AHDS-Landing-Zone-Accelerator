@@ -10,7 +10,7 @@ Security is a paramount concern for Healthcare customers as they deal with Prote
 
 Currently we've no reference architecture in Azure Architecture Center for deploying AHDS and integrating with various Azure Services in a typical enterprise environment with security in mind. This has been a huge pain point for customers looking to deploy AHDS following Microsoft recommended best practices and continue to hinder AHDS adoption.
 
-### Usecase
+### Use cases:
 
 Once we have the reference architecture deployed successfully, we will be able to receive FHIR messages (individually/bulk) securely over a TLS connection through Application Gateway and successfully persist in AHDS. Then FHIR Sync Agent reads data from AHDS, convert to Parquet files and writes it to Azure Data Lake Gen2. Azure Synapse can connect to Data Lake to query and analyze FHIR data.
 
