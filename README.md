@@ -14,6 +14,9 @@ Currently we've no reference architecture in Azure Architecture Center for deplo
 
 Once we have the reference architecture deployed successfully, we will be able to receive FHIR messages (individually/bulk) securely over a TLS connection through Application Gateway and successfully persist in AHDS. Then FHIR Sync Agent reads data from AHDS, convert to Parquet files and writes it to Azure Data Lake Gen2. Azure Synapse can connect to Data Lake to query and analyze FHIR data.
 
+- We can extend this to receive medical device/wearable data and persist in MedTech service and give insights to Doctors/Nurses (using Synapse)
+- We can extend this to ingest non FHIR data (HL7, C-CDA) and convert to FHIR and persist
+
 ### Details:
 
 - Typical Hub & Spoke network architecture to align with Cloud Adoption Framework Landing Zone design principles
