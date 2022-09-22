@@ -118,6 +118,7 @@ module networking './networking/networking-spoke.bicep' = {
   }
 }
 
+/*
 module backend './backend/backend.bicep' = {
   name: 'backendresources'
   scope: resourceGroup(backendRG.name)
@@ -131,6 +132,7 @@ module backend './backend/backend.bicep' = {
     privateEndpointSubnetid: networking.outputs.privateEndpointSubnetid
   }
 }
+*/
 
 var jumpboxSubnetId= networkingHub.outputs.jumpBoxSubnetid
 var CICDAgentSubnetId = networking.outputs.CICDAgentSubnetId
@@ -168,6 +170,8 @@ module shared './shared/shared-spoke.bicep' = {
     resourceSuffix: resourceSuffix
     vmPassword: vmPassword
     vmUsername: vmUsername
+    peVnetId:networking.outputs.spokeVnetId
+    peSubnetId: networking.outputs.privateEndpointSubnetid
   }
 }
 
@@ -185,7 +189,7 @@ module apimModule 'apim/apim.bicep'  = {
 }
 
 //Creation of private DNS zones
-module dnsZoneModule 'shared/dnszone.bicep'  = {
+module dnsZoneModule 'shared/apim-dnszones.bicep'  = {
   name: 'apimDnsZoneDeploy'
   scope: resourceGroup(sharedSpokeRG.name)
   dependsOn: [

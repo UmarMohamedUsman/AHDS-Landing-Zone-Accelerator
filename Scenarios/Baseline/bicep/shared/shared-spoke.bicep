@@ -6,6 +6,9 @@ param location string
 @description('The full id string identifying the target subnet for the CI/CD Agent VM')
 param CICDAgentSubnetId string
 
+param peVnetId string
+param peSubnetId string
+
 @description('The user name to be used as the Administrator for all VMs created by this deployment')
 param vmUsername string
 
@@ -72,36 +75,13 @@ module vm_devopswinvm './createvmwindows.bicep' = if (toLower(CICDAgentType)!='n
   }
 }
 
-resource key_vault 'Microsoft.KeyVault/vaults@2019-09-01' = {
-  name: keyVaultName
-  location: location
-  properties: {
-    tenantId: subscription().tenantId
-    sku: {
-      family: 'A'
-      name: 'standard'
-    }    
-    accessPolicies: [
-      // {
-      //   tenantId: 'string'
-      //   objectId: 'string'
-      //   applicationId: 'string'
-      //   permissions: {
-      //     keys: [
-      //       'string'
-      //     ]
-      //     secrets: [
-      //       'string'
-      //     ]
-      //     certificates: [
-      //       'string'
-      //     ]
-      //     storage: [
-      //       'string'
-      //     ]
-      //   }
-      // }
-    ]
+module keyVault 'key-vault.bicep' = {
+  name: 'key-vault'
+  params: {
+    keyVaultName: keyVaultName
+    location: location
+    virtualNetworkResourceId: peVnetId
+    subnetResourceId: peSubnetId
   }
 }
 
@@ -111,4 +91,4 @@ output CICDAgentVmName string = vm_devopswinvm.name
 output appInsightsName string=appInsights.outputs.appInsightsName
 output appInsightsId string=appInsights.outputs.appInsightsId
 output appInsightsInstrumentationKey string=appInsights.outputs.appInsightsInstrumentationKey
-output keyVaultName string = key_vault.name
+output keyVaultName string = keyVault.name
