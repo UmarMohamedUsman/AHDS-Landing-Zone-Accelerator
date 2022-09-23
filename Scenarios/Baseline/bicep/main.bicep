@@ -119,6 +119,7 @@ module networking './networking/networking-spoke.bicep' = {
     location: location
     hubVnetId: networkingHub.outputs.hubVnetId
     hubVnetName: networkingHub.outputs.hubVnetName
+    hubResourceGroupName: networkingHubResourceGroupName
   }
 }
 

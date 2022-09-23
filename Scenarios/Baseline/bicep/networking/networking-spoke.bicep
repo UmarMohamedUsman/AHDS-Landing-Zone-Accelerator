@@ -13,6 +13,7 @@ param deploymentEnvironment string
 param location string
 param hubVnetId string
 param hubVnetName string
+param hubResourceGroupName string
 
 param spokeVnetAddressPrefix string = '10.2.0.0/16'
 
@@ -118,26 +119,41 @@ resource spokeVnet 'Microsoft.Network/virtualNetworks@2021-02-01' = {
   }
 }
 
-resource hubPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-11-01' = {
-  name: '${spokeVnet.name}/HUB-to-Spoke'
-  properties: {
-    allowVirtualNetworkAccess: true
-    allowForwardedTraffic: true
-    remoteVirtualNetwork: {
-      id: hubVnetId
+module vnetpeeringhub 'vnetpeering.bicep' = {
+  name: 'vnetpeeringhub'
+  scope: resourceGroup(hubResourceGroupName)
+  params: {
+    peeringName: 'HUB-to-Spoke'
+    vnetName: hubVnetName
+    properties: {
+      allowVirtualNetworkAccess: true
+      allowForwardedTraffic: true
+      remoteVirtualNetwork: {
+        id: spokeVnet.id
+      }
     }
   }
+  dependsOn: [
+    spokeVnet
+  ]
 }
 
-resource spokePeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-11-01' = {
-  name: '${hubVnetName}/Spoke-to-HUB'
-  properties: {
-    allowVirtualNetworkAccess: true
-    allowForwardedTraffic: true
-    remoteVirtualNetwork: {
-      id: spokeVnet.id
+module vnetpeeringspoke 'vnetpeering.bicep' = {
+  name: 'vnetpeeringspoke'
+  params: {
+    peeringName: 'Spoke-to-HUB'
+    vnetName: spokeVnet.name
+    properties: {
+      allowVirtualNetworkAccess: true
+      allowForwardedTraffic: true
+      remoteVirtualNetwork: {
+        id: hubVnetId
+      }
     }
   }
+  dependsOn: [
+    spokeVnet
+  ]
 }
 
 // Network Security Groups (NSG)
