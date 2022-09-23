@@ -63,35 +63,38 @@ var apimResourceGroupName = spokeResourceGroupName
 var apimName = 'apim-${resourceSuffix}'
 var appGatewayName = 'appgw-${resourceSuffix}'
 
+resource hubRG 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+  name: hubResourceGroupName
+  location: location
+}
 
-resource networkingHubRG 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+resource spokeRG 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+  name: spokeResourceGroupName
+  location: location
+}
+
+resource networkingHubRG 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   name: networkingHubResourceGroupName
-  location: location
 }
 
-resource networkingSpokeRG 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+resource networkingSpokeRG 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   name: networkingSpokeResourceGroupName
-  location: location
 }
 
-resource backendRG 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+resource backendRG 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   name: backendResourceGroupName
-  location: location
 }
 
-resource sharedHubRG 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+resource sharedHubRG 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   name: sharedHubResourceGroupName
-  location: location
 }
 
-resource sharedSpokeRG 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+resource sharedSpokeRG 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   name: sharedSpokeResourceGroupName
-  location: location
 }
 
-resource apimRG 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+resource apimRG 'Microsoft.Resources/resourceGroups@2021-04-01' existing =  {
   name: apimResourceGroupName
-  location: location
 }
 
 module networkingHub './networking/networking-hub.bicep' = {
