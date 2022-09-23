@@ -49,15 +49,15 @@ param location string = deployment().location
 
 // Variables
 var resourceSuffix = '${workloadName}-${environment}-${location}-001'
-var networkingHubResourceGroupName = 'rg-networking-hub-${resourceSuffix}'
-var networkingSpokeResourceGroupName = 'rg-networking-spoke-${resourceSuffix}'
-var sharedHubResourceGroupName = 'rg-shared-hub-${resourceSuffix}'
-var sharedSpokeResourceGroupName = 'rg-shared-spoke-${resourceSuffix}'
+var hubResourceGroupName = 'rg-hub-${resourceSuffix}'
+var spokeResourceGroupName = 'rg-spoke-${resourceSuffix}'
 
-
-var backendResourceGroupName = 'rg-backend-${resourceSuffix}'
-
-var apimResourceGroupName = 'rg-apim-${resourceSuffix}'
+var networkingHubResourceGroupName = hubResourceGroupName
+var networkingSpokeResourceGroupName = spokeResourceGroupName
+var sharedHubResourceGroupName = hubResourceGroupName
+var sharedSpokeResourceGroupName = spokeResourceGroupName
+var backendResourceGroupName = spokeResourceGroupName
+var apimResourceGroupName = spokeResourceGroupName
 
 // Resource Names
 var apimName = 'apim-${resourceSuffix}'
