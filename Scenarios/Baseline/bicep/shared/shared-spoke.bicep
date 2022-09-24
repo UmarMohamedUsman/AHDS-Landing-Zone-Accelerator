@@ -91,4 +91,4 @@ output CICDAgentVmName string = vm_devopswinvm.name
 output appInsightsName string=appInsights.outputs.appInsightsName
 output appInsightsId string=appInsights.outputs.appInsightsId
 output appInsightsInstrumentationKey string=appInsights.outputs.appInsightsInstrumentationKey
-output keyVaultName string = keyVault.name
+output keyVaultName string = keyVault.outputs.keyVaultName
