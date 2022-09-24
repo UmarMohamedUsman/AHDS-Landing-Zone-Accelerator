@@ -12,18 +12,29 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
   name: keyVaultName
   location: location
   properties: {
-    enableRbacAuthorization: true
     tenantId: subscription().tenantId
     sku: {
       family: 'A'
       name: 'standard'
     } 
-    networkAcls: {
-      defaultAction: 'Deny'
-      bypass: 'AzureServices'
-    }
+    accessPolicies: []
   }
 }
+
+/*
+resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
+  name: keyVaultName
+  location: location
+  properties: {
+    tenantId: subscription().tenantId
+    sku: {
+      family: 'A'
+      name: 'standard'
+    } 
+    accessPolicies: []
+  }
+}
+
 
 resource privateEndpoint 'Microsoft.Network/privateEndpoints@2021-05-01' = {
   name: privateEndpointName
@@ -80,5 +91,6 @@ resource virtualNetworkLink 'Microsoft.Network/privateDnsZones/virtualNetworkLin
     }
   }
 }
+*/
 
-
+output keyVaultName string = keyVault.name
