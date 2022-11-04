@@ -5,13 +5,13 @@ param rgName string
 param vnetSpokeName string
 param spokeVNETaddPrefixes array
 param spokeSubnets array
-param rtFHIRSubnetName string
+param rtAKSSubnetName string
 param firewallIP string
 param vnetHubName string
 param appGatewayName string
 param appGatewaySubnetName string
 param vnetHUBRGName string
-param nsgFHIRName string
+param nsgAKSName string
 param nsgAppGWName string
 param rtAppGWSubnetName string
 param dhcpOptions object
@@ -44,30 +44,30 @@ module vnetspoke 'modules/vnet/vnet.bicep' = {
   ]
 }
 
-module nsgfhirsubnet 'modules/vnet/nsg.bicep' = {
+module nsgakssubnet 'modules/vnet/nsg.bicep' = {
   scope: resourceGroup(rg.name)
-  name: nsgFHIRName
+  name: nsgAKSName
   params: {
     location: location
-    nsgName: nsgFHIRName
+    nsgName: nsgAKSName
   }
 }
 
 module routetable 'modules/vnet/routetable.bicep' = {
   scope: resourceGroup(rg.name)
-  name: rtFHIRSubnetName
+  name: rtAKSSubnetName
   params: {
     location: location
-    rtName: rtFHIRSubnetName
+    rtName: rtAKSSubnetName
   }
 }
 
 module routetableroutes 'modules/vnet/routetableroutes.bicep' = {
   scope: resourceGroup(rg.name)
-  name: 'FHIR-to-internet'
+  name: 'aks-to-internet'
   params: {
-    routetableName: rtFHIRSubnetName
-    routeName: 'FHIR-to-internet'
+    routetableName: rtAKSSubnetName
+    routeName: 'AKS-to-internet'
     properties: {
       nextHopType: 'VirtualAppliance'
       nextHopIpAddress: firewallIP
@@ -162,7 +162,7 @@ module privatednsSAZone 'modules/vnet/privatednszone.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'privatednsSAZone'
   params: {
-    privateDNSZoneName: 'privatelink.blob.core.windows.net'
+    privateDNSZoneName: 'privatelink.file.core.windows.net'
   }
 }
 
@@ -171,6 +171,23 @@ module privateDNSLinkSA 'modules/vnet/privatednslink.bicep' = {
   name: 'privateDNSLinkSA'
   params: {
     privateDnsZoneName: privatednsSAZone.outputs.privateDNSZoneName
+    vnetId: vnethub.id
+  }
+}
+
+module privatednsAKSZone 'modules/vnet/privatednszone.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsAKSZone'
+  params: {
+    privateDNSZoneName: 'privatelink.${toLower(location)}.azmk8s.io'
+  }
+}
+
+module privateDNSLinkAKS 'modules/vnet/privatednslink.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privateDNSLinkAKS'
+  params: {
+    privateDnsZoneName: privatednsAKSZone.outputs.privateDNSZoneName
     vnetId: vnethub.id
   }
 }
@@ -281,5 +298,3 @@ module appgwroutetable 'modules/vnet/routetable.bicep' = {
     rtName: rtAppGWSubnetName
   }
 }
-
-// Need to setup the AppGW to publish APIM

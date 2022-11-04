@@ -1,10 +1,10 @@
 param nameSufix string
 param location string = resourceGroup().location
+param name string = '${nameSufix}${uniqueString('keyvault-VM',utcNow('u'))}'
 
 @secure()
 param secrets object = {}
 
-var name = '${nameSufix}${uniqueString(subscription().id,resourceGroup().name)}'
 //var secretList = !empty(secrets) ? secrets.secureList : {}
 
 resource keyvault 'Microsoft.KeyVault/vaults@2022-07-01' = {
@@ -22,6 +22,7 @@ resource keyvault 'Microsoft.KeyVault/vaults@2022-07-01' = {
     enableSoftDelete: true
     softDeleteRetentionInDays: 90
     enableRbacAuthorization: false
+    accessPolicies: []
   }
 }
 

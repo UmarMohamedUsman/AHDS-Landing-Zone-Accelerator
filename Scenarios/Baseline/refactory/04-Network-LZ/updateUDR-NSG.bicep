@@ -2,9 +2,9 @@ targetScope = 'subscription'
 
 param spokeVnetName string
 param aksVNetSubnetName string
-param rtAKSSubnetName string
+param rtFHIRSubnetName string
 param rgName string
-param nsgAKSName string
+param nsgFHIRName string
 param appGatewaySubnetName string
 param nsgAppGWName string
 param rtAppGWSubnetName string
@@ -16,12 +16,12 @@ resource subnetAKS 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existi
 
 resource rtVM 'Microsoft.Network/routeTables@2021-02-01' existing ={
   scope: resourceGroup(rgName)
-  name: rtAKSSubnetName
+  name: rtFHIRSubnetName
 }
 
 resource nsgaks 'Microsoft.Network/networkSecurityGroups@2021-02-01' existing = {
   scope: resourceGroup(rgName)
-  name: nsgAKSName
+  name: nsgFHIRName
 }
 
 module updateUDR 'modules/vnet/subnet.bicep' = {

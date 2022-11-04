@@ -3,19 +3,19 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "rgName": {
-      "value": "ESLZ-SPOKE"
+      "value": "ESLZ-AHDS-SPOKE"
     },
     "spokeVnetName": {
       "value": "VNet-SPOKE"
     },
-    "aksVNetSubnetName": {
-      "value": "AKS"
+    "fhirVNetSubnetName": {
+      "value": "FHIR"
     },
-    "rtAKSSubnetName":{
-      "value": "AKS-RT"
+    "rtFHIRSubnetName":{
+      "value": "FHIR-RT"
     },
-    "nsgAKSName": {
-      "value": "AKS-NSG"
+    "nsgFHIRName": {
+      "value": "FHIR-NSG"
     },
     "appGatewaySubnetName": {
       "value": "AppGWSubnet"
