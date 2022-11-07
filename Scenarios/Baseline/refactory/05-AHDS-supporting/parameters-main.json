@@ -27,7 +27,7 @@
       "value": "privatelink.vaultcore.azure.net"
     },
     "privateDNSZoneSAName": {
-      "value": "privatelink.file.core.windows.net"
+      "value": "privatelink.blob.core.windows.net"
     },
     "storageAccountType": {
       "value": "Standard_GZRS"

@@ -11,8 +11,8 @@ az deployment sub create -n "ESLZ-Spoke-AHDS" -l "CentralUS" -f 04-Network-LZ/ma
 # Wait until App Gateway get deployed. It takes a few mins to complete. at least 10 min
 az deployment sub create -n "ESLZ-AHDS-SPOKE-UDRNSG" -l "CentralUS" -f 04-Network-LZ/updateUDR-NSG.bicep -p 04-Network-LZ/parameters-updateUDR-NSG.json
 
-# 05 AKS Supporting Infrastructure
-az deployment sub create -n "ESLZ-AKS-Supporting" -l "CentralUS" -f 05-AKS-supporting/main.bicep -p 05-AKS-supporting/parameters-main.json
+# 05 AHDS Supporting Infrastructure
+az deployment sub create -n "ESLZ-AHDS-Supporting" -l "CentralUS" -f 05-AHDS-supporting/main.bicep -p 05-AHDS-supporting/parameters-main.json
 
 # 06 AKS Cluster Deployment
 acrName=$(az deployment sub show -n "ESLZ-AKS-Supporting" --query properties.outputs.acrName.value -o tsv)

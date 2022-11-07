@@ -11,7 +11,7 @@ param privateDNSZoneKVName string
 param privateDNSZoneSAName string
 param acrName string = 'eslzacr${uniqueString('acrvws',utcNow('u'))}'
 param keyvaultName string = 'eslz-kv-${uniqueString('acrvws',utcNow('u'))}'
-param storageAccountName string = 'eslzsa${uniqueString('aks',utcNow('u'))}'
+param storageAccountName string = 'eslzsa${uniqueString('ahds',utcNow('u'))}'
 param storageAccountType string
 param location string = deployment().location
 
@@ -149,14 +149,14 @@ module privateEndpointSADNSSetting 'modules/vnet/privatedns.bicep' = {
   }
 }
 
-module aksIdentity 'modules/Identity/userassigned.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'aksIdentity'
-  params: {
-    location: location
-    identityName: 'aksIdentity'
-  }
-}
+// module aksIdentity 'modules/Identity/userassigned.bicep' = {
+//   scope: resourceGroup(rg.name)
+//   name: 'aksIdentity'
+//   params: {
+//     location: location
+//     identityName: 'aksIdentity'
+//   }
+// }
 
 // need to add APIM
 
