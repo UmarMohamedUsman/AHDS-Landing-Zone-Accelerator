@@ -20,6 +20,12 @@
     "subnetName": {
       "value": "servicespe"
     },
+    "APIMsubnetName": {
+      "value": "APIM"
+    },
+    "APIMName": {
+      "value": "APIM-AHDS"
+    },
     "privateDNSZoneACRName": {
       "value": "privatelink.azurecr.io"
     },

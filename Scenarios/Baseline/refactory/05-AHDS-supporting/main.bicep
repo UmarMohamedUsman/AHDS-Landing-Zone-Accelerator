@@ -6,6 +6,8 @@ param acrPrivateEndpointName string
 param saPrivateEndpointName string
 param vnetName string
 param subnetName string
+param APIMsubnetName string
+param APIMName string
 param privateDNSZoneACRName string
 param privateDNSZoneKVName string
 param privateDNSZoneSAName string
@@ -158,7 +160,45 @@ module privateEndpointSADNSSetting 'modules/vnet/privatedns.bicep' = {
 //   }
 // }
 
-// need to add APIM
+// APIM
+
+resource APIMSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
+  scope: resourceGroup(rg.name)
+  name: '${vnetName}/${APIMsubnetName}'
+}
+
+module appInsights 'modules/azmon/azmon.bicep' = {
+  name: 'azmon'
+  scope: resourceGroup(rg.name)
+  params: {
+    location: location
+    resourceSuffix: 'AHDS'
+  }
+}
+
+module apimModule 'modules/apim/apim.bicep'  = {
+  name: 'apimDeploy'
+  scope: resourceGroup(rg.name)
+  params: {
+    apimName: APIMName
+    apimSubnetId: APIMSubnet.id
+    location: location
+    appInsightsName: appInsights.outputs.appInsightsName
+    appInsightsId: appInsights.outputs.appInsightsId
+    appInsightsInstrumentationKey: appInsights.outputs.appInsightsInstrumentationKey
+  }
+}
+
+module apimDNSRecords 'modules/vnet/privatednsrecords.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'apimDNSRecords'
+  params: {
+    RG: rg.name
+    apimName: APIMName
+  }
+}
+
+// Need to publish APIM in AppGW with Certs and domains
 
 output acrName string = acr.name
 output keyvaultName string = keyvault.name

@@ -52,6 +52,12 @@
             "addressPrefix": "10.1.4.0/24",
             "privateEndpointNetworkPolicies": "Disabled"
           }
+        },
+        {
+          "name": "APIM",
+          "properties": {
+            "addressPrefix": "10.1.5.0/24"
+          }
         }
       ]
     },

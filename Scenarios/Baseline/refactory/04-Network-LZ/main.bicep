@@ -175,6 +175,94 @@ module privateDNSLinkSA 'modules/vnet/privatednslink.bicep' = {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// APIM DNS Zones
+module privatednsazureapinet 'modules/vnet/privatednszone.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsazureapinet'
+  params: {
+    privateDNSZoneName: 'azure-api.net'
+  }
+}
+
+module privatednsazureapinetLink 'modules/vnet/privatednslink.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsazureapinetLink'
+  params: {
+    privateDnsZoneName: privatednsazureapinet.outputs.privateDNSZoneName
+    vnetId: vnethub.id
+  }
+}
+
+module privatednsportalazureapinet 'modules/vnet/privatednszone.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsportalazureapinet'
+  params: {
+    privateDNSZoneName: 'portal.azure-api.net'
+  }
+}
+
+module privatednsportalazureapinetLink 'modules/vnet/privatednslink.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsportalazureapinetLink'
+  params: {
+    privateDnsZoneName: privatednsportalazureapinet.outputs.privateDNSZoneName
+    vnetId: vnethub.id
+  }
+}
+
+module privatednsdeveloperazureapinet 'modules/vnet/privatednszone.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsdeveloperazureapinet'
+  params: {
+    privateDNSZoneName: 'developer.azure-api.net'
+  }
+}
+
+module privatednsdeveloperazureapinetLink 'modules/vnet/privatednslink.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsdeveloperazureapinetLink'
+  params: {
+    privateDnsZoneName: privatednsdeveloperazureapinet.outputs.privateDNSZoneName
+    vnetId: vnethub.id
+  }
+}
+
+module privatednsmanagementazureapinet 'modules/vnet/privatednszone.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsmanagementazureapinet'
+  params: {
+    privateDNSZoneName: 'management.azure-api.net'
+  }
+}
+
+module privatednsmanagementazureapinetLink 'modules/vnet/privatednslink.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsmanagementazureapinetLink'
+  params: {
+    privateDnsZoneName: privatednsmanagementazureapinet.outputs.privateDNSZoneName
+    vnetId: vnethub.id
+  }
+}
+
+module privatednsscmazureapinet 'modules/vnet/privatednszone.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsscmazureapinet'
+  params: {
+    privateDNSZoneName: 'scm.azure-api.net'
+  }
+}
+
+module privatednsscmazureapinetLink 'modules/vnet/privatednslink.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsscmazureapinetLink'
+  params: {
+    privateDnsZoneName: privatednsscmazureapinet.outputs.privateDNSZoneName
+    vnetId: vnethub.id
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 module publicipappgw 'modules/vnet/publicip.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'APPGW-PIP'
