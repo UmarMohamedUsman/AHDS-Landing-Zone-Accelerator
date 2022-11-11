@@ -9,7 +9,7 @@ param appGatewayCertType      string
 var secretName = replace(appGatewayFQDN,'.', '-')
 var subjectName='CN=${appGatewayFQDN}'
 
-var certData = appGatewayCertType == 'selfsigned' ? 'null' : loadFileAsBase64('../certs/appgw.pfx')
+var certData = appGatewayCertType == 'selfsigned' ? 'null' : loadFileAsBase64('../vnet/certs/appgw.pfx')
 var certPwd = appGatewayCertType == 'selfsigned' ? 'null' : certPassword
 
 resource accessPolicyGrant 'Microsoft.KeyVault/vaults/accessPolicies@2019-09-01' = {

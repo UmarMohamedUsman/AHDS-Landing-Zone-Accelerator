@@ -8,16 +8,14 @@ param spokeSubnets array
 param rtFHIRSubnetName string
 param firewallIP string
 param vnetHubName string
-param appGatewayName string
-param appGatewaySubnetName string
 param vnetHUBRGName string
 param nsgFHIRName string
 param nsgAppGWName string
 param rtAppGWSubnetName string
 param dhcpOptions object
 param location string = deployment().location
-param availabilityZones array
-param appGwyAutoScale object
+
+
 
 module rg 'modules/resource-group/rg.bicep' = {
   name: rgName
@@ -262,41 +260,6 @@ module privatednsscmazureapinetLink 'modules/vnet/privatednslink.bicep' = {
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-module publicipappgw 'modules/vnet/publicip.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'APPGW-PIP'
-  params: {
-    availabilityZones:availabilityZones
-    location: location
-    publicipName: 'APPGW-PIP'
-    publicipproperties: {
-      publicIPAllocationMethod: 'Static'
-    }
-    publicipsku: {
-      name: 'Standard'
-      tier: 'Regional'
-    }
-  }
-}
-
-resource appgwSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
-  scope: resourceGroup(rg.name)
-  name: '${vnetSpokeName}/${appGatewaySubnetName}'
-}
-
-module appgw 'modules/vnet/appgw.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'appgw'
-  params: {
-    appGwyAutoScale:appGwyAutoScale
-    availabilityZones:availabilityZones
-    location: location
-    appgwname: appGatewayName
-    appgwpip: publicipappgw.outputs.publicipId
-    subnetid: appgwSubnet.id
-  }
-}
 
 module nsgappgwsubnet 'modules/vnet/nsg.bicep' = {
   scope: resourceGroup(rg.name)

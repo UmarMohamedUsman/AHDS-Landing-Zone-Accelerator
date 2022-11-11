@@ -6,7 +6,6 @@ resource azidentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30
   location: location
 }
 
-output identityid string = azidentity.id
+output identityId string = azidentity.id
 output clientId string = azidentity.properties.clientId
 output principalId string = azidentity.properties.principalId
-output azidentity object = azidentity

@@ -16,6 +16,16 @@ param keyvaultName string = 'eslz-kv-${uniqueString('acrvws',utcNow('u'))}'
 param storageAccountName string = 'eslzsa${uniqueString('ahds',utcNow('u'))}'
 param storageAccountType string
 param location string = deployment().location
+param appGatewayName string
+param appGatewaySubnetName string
+param availabilityZones array
+param appGwyAutoScale object
+param appGatewayFQDN string
+param primaryBackendEndFQDN string
+@description('Set to selfsigned if self signed certificates should be used for the Application Gateway. Set to custom and copy the pfx file to vnet/certs/appgw.pfx if custom certificates are to be used')
+param appGatewayCertType string
+@secure()
+param certPassword                  string
 
 //var acrName = 'eslzacr${uniqueString(rgName, deployment().name)}'
 //var keyvaultName = 'eslz-kv-${uniqueString(rgName, deployment().name)}'
@@ -195,6 +205,69 @@ module apimDNSRecords 'modules/vnet/privatednsrecords.bicep' = {
   params: {
     RG: rg.name
     apimName: APIMName
+  }
+}
+
+// AppGW
+
+module publicipappgw 'modules/vnet/publicip.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'APPGW-PIP'
+  params: {
+    availabilityZones:availabilityZones
+    location: location
+    publicipName: 'APPGW-PIP'
+    publicipproperties: {
+      publicIPAllocationMethod: 'Static'
+    }
+    publicipsku: {
+      name: 'Standard'
+      tier: 'Regional'
+    }
+  }
+}
+
+resource appgwSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
+  scope: resourceGroup(rg.name)
+  name: '${vnetName}/${appGatewaySubnetName}'
+}
+
+module appgwIdentity 'modules/Identity/userassigned.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'appgwIdentity'
+  params: {
+    location: location
+    identityName: 'appgwIdentity'
+  }
+}
+
+module certificate 'modules/vnet/certificate.bicep' = {
+  name: 'certificate'
+  scope: resourceGroup(rg.name)
+  params: {
+    managedIdentity:    appgwIdentity.outputs.azidentity
+    keyVaultName:       keyvaultName
+    location:           location
+    appGatewayFQDN:     appGatewayFQDN
+    appGatewayCertType: appGatewayCertType
+    certPassword:       certPassword
+  }
+}
+
+module appgw 'modules/vnet/appgw.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'appgw'
+  params: {
+    appGwyAutoScale: appGwyAutoScale
+    availabilityZones: availabilityZones
+    location: location
+    appgwname: appGatewayName
+    appgwpip: publicipappgw.outputs.publicipId
+    subnetid: appgwSubnet.id
+    appGatewayIdentityId: appgwIdentity.outputs.identityid
+    appGatewayFQDN: appGatewayFQDN
+    keyVaultSecretId: certificate.outputs.secretUri
+    primaryBackendEndFQDN: primaryBackendEndFQDN
   }
 }
 
