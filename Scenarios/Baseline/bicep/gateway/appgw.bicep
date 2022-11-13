@@ -56,8 +56,32 @@ param diagnosticMetricsToEnable array = [
   'AllMetrics'
 ]
 
+
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = '${appGatewayName}-diagnosticSettings'
+
+@description('The name of the PIP diagnostic setting.')
+param pipDiagnosticSettingsName string = '${appGatewayName}-pip-diagnosticSettings'
+
+@description('Optional. The name of logs that will be streamed.')
+@allowed([
+  'DDoSProtectionNotifications'
+  'DDoSMitigationFlowLogs'
+  'DDoSMitigationReports'
+])
+param pipdiagnosticLogCategoriesToEnable array = [
+  'DDoSProtectionNotifications'
+  'DDoSMitigationFlowLogs'
+  'DDoSMitigationReports'
+]
+
+@description('Optional. The name of metrics that will be streamed.')
+@allowed([
+  'AllMetrics'
+])
+param pipdiagnosticMetricsToEnable array = [
+  'AllMetrics'
+]
 
 var diagnosticsLogs = [for category in diagnosticLogCategoriesToEnable: {
 category: category
@@ -78,6 +102,24 @@ retentionPolicy: {
 }
 }]
 
+var pipdiagnosticsLogs = [for category in pipdiagnosticLogCategoriesToEnable: {
+  category: category
+  enabled: true
+  retentionPolicy: {
+    enabled: true
+    days: diagnosticLogsRetentionInDays
+  }
+  }]
+  
+  var pipdiagnosticsMetrics = [for metric in pipdiagnosticMetricsToEnable: {
+  category: metric
+  timeGrain: null
+  enabled: true
+  retentionPolicy: {
+    enabled: true
+    days: diagnosticLogsRetentionInDays
+  }
+  }]
 
 var appGatewayPrimaryPip            = 'pip-${appGatewayName}'
 var appGatewayIdentityId            = 'identity-${appGatewayName}'
@@ -325,4 +367,14 @@ resource appGateway_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@20
     metrics: diagnosticsMetrics
   }
   scope: appGatewayName_resource
+}
+
+resource pip_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview'={
+  name: pipDiagnosticSettingsName
+  properties: {
+    workspaceId: !empty(diagnosticWorkspaceId) ? diagnosticWorkspaceId : null
+    logs: pipdiagnosticsLogs
+    metrics: pipdiagnosticsMetrics
+  }
+  scope: appGatewayPublicIPAddress
 }
