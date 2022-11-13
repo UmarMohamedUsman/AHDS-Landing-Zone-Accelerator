@@ -28,6 +28,57 @@ param keyVaultResourceGroupName     string
 @secure()
 param certPassword                  string  
 
+@description('Specifies the number of days that logs will be kept for; a value of 0 will retain data indefinitely.')
+@minValue(0)
+@maxValue(365)
+param diagnosticLogsRetentionInDays int = 365
+
+@description('Resource ID of the diagnostic log analytics workspace.')
+param diagnosticWorkspaceId string = ''
+
+@description('The name of logs that will be streamed.')
+@allowed([
+  'ApplicationGatewayAccessLog'
+  'ApplicationGatewayPerformanceLog'
+  'ApplicationGatewayFirewallLog'
+])
+param diagnosticLogCategoriesToEnable array = [
+  'ApplicationGatewayAccessLog'
+  'ApplicationGatewayPerformanceLog'
+  'ApplicationGatewayFirewallLog'
+]
+
+@description('Optional. The name of metrics that will be streamed.')
+@allowed([
+  'AllMetrics'
+])
+param diagnosticMetricsToEnable array = [
+  'AllMetrics'
+]
+
+@description('Optional. The name of the diagnostic setting, if deployed.')
+param diagnosticSettingsName string = '${appGatewayName}-diagnosticSettings'
+
+var diagnosticsLogs = [for category in diagnosticLogCategoriesToEnable: {
+category: category
+enabled: true
+retentionPolicy: {
+  enabled: true
+  days: diagnosticLogsRetentionInDays
+}
+}]
+
+var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
+category: metric
+timeGrain: null
+enabled: true
+retentionPolicy: {
+  enabled: true
+  days: diagnosticLogsRetentionInDays
+}
+}]
+
+
 var appGatewayPrimaryPip            = 'pip-${appGatewayName}'
 var appGatewayIdentityId            = 'identity-${appGatewayName}'
 
@@ -264,4 +315,14 @@ resource appGatewayName_resource 'Microsoft.Network/applicationGateways@2019-09-
       maxCapacity: 3
     }
   }
+}
+
+resource appGateway_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview'={
+  name: diagnosticSettingsName
+  properties: {
+    workspaceId: !empty(diagnosticWorkspaceId) ? diagnosticWorkspaceId : null
+    logs: diagnosticsLogs
+    metrics: diagnosticsMetrics
+  }
+  scope: appGatewayName_resource
 }
