@@ -2,6 +2,7 @@ param name string
 param keyVaultsku string
 param tenantId string
 param location string = resourceGroup().location
+param networkAction string = 'Deny'
 
 resource keyvault 'Microsoft.KeyVault/vaults@2019-09-01' = {
   name: name
@@ -18,7 +19,7 @@ resource keyvault 'Microsoft.KeyVault/vaults@2019-09-01' = {
     enablePurgeProtection: true
     networkAcls: {
       bypass: 'AzureServices'
-      defaultAction: 'Deny'
+      defaultAction: networkAction
     }
   }
 }

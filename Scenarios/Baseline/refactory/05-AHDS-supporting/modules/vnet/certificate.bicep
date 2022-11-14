@@ -46,7 +46,7 @@ resource appGatewayCertificate 'Microsoft.Resources/deploymentScripts@2020-10-01
   kind: 'AzurePowerShell'
   properties: {
     azPowerShellVersion: '6.6'
-    arguments: ' -vaultName ${keyVaultName} -certificateName ${secretName} -subjectName ${subjectName} -certPwd ${certPwd} -certDataString ${certData} -certType ${appGatewayCertType}'
+    arguments: ' -vaultName ${keyVaultName} -certificateName ${secretName} -subjectName ${subjectName} -certPwd ${certPwd} -certDataString ${certData} -certType ${appGatewayCertType} -subscriptionId ${subscription().subscriptionId}'
     scriptContent: '''
       param(
       [string] [Parameter(Mandatory=$true)] $vaultName,
@@ -54,11 +54,17 @@ resource appGatewayCertificate 'Microsoft.Resources/deploymentScripts@2020-10-01
       [string] [Parameter(Mandatory=$true)] $subjectName,
       [string] [Parameter(Mandatory=$true)] $certPwd,
       [string] [Parameter(Mandatory=$true)] $certDataString,
-      [string] [Parameter(Mandatory=$true)] $certType
+      [string] [Parameter(Mandatory=$true)] $certType,
+      [string] [Parameter(Mandatory=$true)] $subscriptionId
       )
 
       $ErrorActionPreference = 'Stop'
       $DeploymentScriptOutputs = @{}
+      Login-AzAccount -Identity -SubscriptionId $subscriptionId
+      Write-Host "Adding the current public ip to the key vault allow list"
+      $publicIp = "$(Invoke-WebRequest https://api.ipify.org)/32"
+      Add-AzKeyVaultNetworkRule -VaultName $vaultName -IpAddressRange $publicIp -SubscriptionId $subscriptionId
+
       if ($certType -eq 'selfsigned') {
         $policy = New-AzKeyVaultCertificatePolicy -SubjectName $subjectName -IssuerName Self -ValidityInMonths 12 -Verbose
 
@@ -90,8 +96,12 @@ resource appGatewayCertificate 'Microsoft.Resources/deploymentScripts@2020-10-01
         $ss = Convertto-SecureString -String $certPwd -AsPlainText -Force;
         Import-AzKeyVaultCertificate -Name $certificateName -VaultName $vaultName -CertificateString $certDataString -Password $ss
       }
+
+      Write-Host "Removing current public ip address from allow list"
+      Remove-AzKeyVaultNetworkRule -VaultName $vaultName -IpAddressRange $publicIp -SubscriptionId $subscriptionId
       '''
     retentionInterval: 'P1D'
+    cleanupPreference: 'OnExpiration'
   }
   identity: {
     type: 'UserAssigned'

@@ -9,10 +9,27 @@ az deployment sub create -n "ESLZ-HUB-VM" -l "CentralUS" -f 03-Network-Hub/deplo
 # 04 Network LZ
 az deployment sub create -n "ESLZ-Spoke-AHDS" -l "CentralUS" -f 04-Network-LZ/main.bicep -p 04-Network-LZ/parameters-main.json
 # Wait until App Gateway get deployed. It takes a few mins to complete. at least 10 min
-az deployment sub create -n "ESLZ-AHDS-SPOKE-UDRNSG" -l "CentralUS" -f 04-Network-LZ/updateUDR-NSG.bicep -p 04-Network-LZ/parameters-updateUDR-NSG.json
+#az deployment sub create -n "ESLZ-AHDS-SPOKE-UDRNSG" -l "CentralUS" -f 04-Network-LZ/updateUDR-NSG.bicep -p 04-Network-LZ/parameters-updateUDR-NSG.json
 
 # 05 AHDS Supporting Infrastructure
+# First Execution
 az deployment sub create -n "ESLZ-AHDS-Supporting" -l "CentralUS" -f 05-AHDS-supporting/main.bicep -p 05-AHDS-supporting/parameters-main.json
+
+# Retry Execution
+# Bash CLI
+rg=ESLZ-AHDS-SPOKE
+acrName=$(az deployment sub show -n $rg --query properties.outputs.acrName.value -o tsv)
+keyVaultName=$(az deployment sub show -n $rg --query properties.outputs.keyvaultName.value -o tsv)
+storageName=$(az deployment sub show -n $rg --query properties.outputs.storageName.value -o tsv)
+
+# PowerShell
+$rg="ESLZ-AHDS-SPOKE"
+$acrName=$(az acr list -g $rg --query "[].name" -o tsv)
+$keyVaultName=$(az keyvault list -g $rg --query "[].name" -o tsv)
+$storageName=$(az storage account list -g $rg --query "[].name" -o tsv)
+
+az deployment sub create -n "ESLZ-AHDS-Supporting" -l "CentralUS" -f 05-AHDS-supporting/main.bicep -p 05-AHDS-supporting/parameters-main.json -p acrName=$acrName -p keyvaultName=$keyVaultName -p storageAccountName=$storageName
+#az deployment sub create -n "ESLZ-AHDS-Supporting" -l "CentralUS" -f 05-AHDS-supporting/main.bicep -p 05-AHDS-supporting/parameters-main.json -p acrName=eslzacrufwp6iactonsm -p keyvaultName=eslz-kv-ufwp6iactonsm -p storageAccountName=eslzsafxhkqmdttbkgy
 
 # 06 AKS Cluster Deployment
 acrName=$(az deployment sub show -n "ESLZ-AKS-Supporting" --query properties.outputs.acrName.value -o tsv)
@@ -21,6 +38,9 @@ keyVaultName=$(az deployment sub show -n "ESLZ-AKS-Supporting" --query propertie
 az deployment sub create -n "ESLZ-AKS-CLUSTER" -l "CentralUS" -f 06-AKS-cluster/main.bicep -p 06-AKS-cluster/parameters-main.json -p acrName=$acrName -p keyvaultName=$keyVaultName -p kubernetesVersion=1.22.6 -p networkPlugin=azure
 
 # Clean Up
+
+az apim deletedservice purge --service-name APIM-AHDS --location CentralUS
+
 # Delete Resource Groups
 az group delete -n ESLZ-HUB -y
 az group delete -n ESLZ-SPOKE -y

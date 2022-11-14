@@ -56,6 +56,7 @@ module keyvault 'modules/keyvault/keyvault.bicep' = {
     keyVaultsku: 'Standard'
     name: keyvaultName
     tenantId: subscription().tenantId
+    networkAction: 'Deny'
   }
 }
 
@@ -110,7 +111,7 @@ module privateEndpointSA 'modules/vnet/privateendpoint.bicep' = {
   params: {
     location: location
     groupIds: [
-      'file'
+      'blob'
     ]
     privateEndpointName: saPrivateEndpointName
     privatelinkConnName: '${saPrivateEndpointName}-conn'
@@ -204,7 +205,7 @@ module apimDNSRecords 'modules/vnet/privatednsrecords.bicep' = {
   name: 'apimDNSRecords'
   params: {
     RG: rg.name
-    apimName: APIMName
+    apimName: apimModule.outputs.apimName
   }
 }
 
@@ -241,6 +242,16 @@ module appgwIdentity 'modules/Identity/userassigned.bicep' = {
   }
 }
 
+module kvrole 'modules/Identity/kvrole.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'kvrole'
+  params: {
+    principalId: appgwIdentity.outputs.azidentity.properties.principalId
+    roleGuid: 'f25e0fa2-a7c8-4377-a976-54943a77a395' //Key Vault Contributor
+    keyvaultName: keyvaultName
+  }
+}
+
 module certificate 'modules/vnet/certificate.bicep' = {
   name: 'certificate'
   scope: resourceGroup(rg.name)
@@ -252,6 +263,9 @@ module certificate 'modules/vnet/certificate.bicep' = {
     appGatewayCertType: appGatewayCertType
     certPassword:       certPassword
   }
+  dependsOn: [
+    kvrole
+  ]
 }
 
 module appgw 'modules/vnet/appgw.bicep' = {
@@ -275,3 +289,4 @@ module appgw 'modules/vnet/appgw.bicep' = {
 
 output acrName string = acr.name
 output keyvaultName string = keyvault.name
+output storageName string = storage.name

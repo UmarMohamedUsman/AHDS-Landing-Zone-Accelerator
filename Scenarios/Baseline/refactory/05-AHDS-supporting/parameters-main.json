@@ -37,6 +37,37 @@
     },
     "storageAccountType": {
       "value": "Standard_GZRS"
+    },
+    "appGatewayName": {
+      "value": "APPGW"
+    },
+    "appGwyAutoScale": {
+      "value": {
+        "maxCapacity": 2,
+        "minCapacity": 1
+      }
+    },
+    "availabilityZones": {
+      "value": [
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    "appGatewaySubnetName": {
+      "value": "AppGWSubnet"
+    },
+    "appGatewayFQDN" :{
+      "value": "api.example.com"
+    },
+    "appGatewayCertType" :{
+        "value": "selfsigned"
+    },
+    "certPassword": {
+      "value": "ENTER PASSWORD"
+    },
+    "primaryBackendEndFQDN":{
+      "value": "APIM-AHDS.azure-api.net"
     }
   }
 }

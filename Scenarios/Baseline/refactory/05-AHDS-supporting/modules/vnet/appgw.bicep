@@ -16,6 +16,7 @@ var backendHttpSettingsCollectionName = 'backend-http-settings'
 var backendHttpsSettingsCollectionName = 'backend-https-settings'
 param keyVaultSecretId string
 param availabilityZones array
+param probeUrl string = '/status-0123456789abcdef'
 
 resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
   name: appgwname
@@ -107,7 +108,7 @@ resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
         }
       }
       {
-        name: 'https'
+        name: backendHttpsSettingsCollectionName
         properties: {
           port: 443
           protocol: 'Https'
@@ -170,6 +171,37 @@ resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
         }
       }
     ]
+    probes: [
+      {
+        name: 'APIM'
+        properties: {
+          protocol: 'Https'
+          host: primaryBackendEndFQDN
+          path: probeUrl
+          interval: 30
+          timeout: 30
+          unhealthyThreshold: 3
+          pickHostNameFromBackendHttpSettings: false
+          minServers: 0
+          match: {
+            statusCodes: [
+              '200-399'
+            ]
+          }
+        }
+      }
+    ]
+    webApplicationFirewallConfiguration: {
+      enabled: true
+      firewallMode: 'Detection'
+      ruleSetType: 'OWASP'
+      ruleSetVersion: '3.0'
+      disabledRuleGroups: []
+      requestBodyCheck: true
+      maxRequestBodySizeInKb: 128
+      fileUploadLimitInMb: 100
+    }
+    enableHttp2: true
   }
 }
 
