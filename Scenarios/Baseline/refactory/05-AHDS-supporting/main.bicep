@@ -8,6 +8,7 @@ param vnetName string
 param subnetName string
 param APIMsubnetName string
 param APIMName string
+param privateDNSZoneSAfileName string
 param privateDNSZoneACRName string
 param privateDNSZoneKVName string
 param privateDNSZoneSAName string
@@ -120,6 +121,35 @@ module privateEndpointSA 'modules/vnet/privateendpoint.bicep' = {
   }
 }
 
+module privateEndpointSAfile 'modules/vnet/privateendpoint.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: '${saPrivateEndpointName}-file'
+  params: {
+    location: location
+    groupIds: [
+      'file'
+    ]
+    privateEndpointName: '${saPrivateEndpointName}-file'
+    privatelinkConnName: '${saPrivateEndpointName}-file-conn'
+    resourceId: storage.outputs.storageAccountId
+    subnetid: servicesSubnet.id
+  }
+}
+
+resource privateDNSZoneSAfile 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  scope: resourceGroup(rg.name)
+  name: privateDNSZoneSAfileName
+}
+
+module privateEndpointSAfileDNSSetting 'modules/vnet/privatedns.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'sa-file-pvtep-dns'
+  params: {
+    privateDNSZoneId: privateDNSZoneSAfile.id
+    privateEndpointName: privateEndpointSAfile.name
+  }
+}
+
 resource privateDNSZoneACR 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: resourceGroup(rg.name)
   name: privateDNSZoneACRName
@@ -161,15 +191,6 @@ module privateEndpointSADNSSetting 'modules/vnet/privatedns.bicep' = {
     privateEndpointName: privateEndpointSA.name
   }
 }
-
-// module aksIdentity 'modules/Identity/userassigned.bicep' = {
-//   scope: resourceGroup(rg.name)
-//   name: 'aksIdentity'
-//   params: {
-//     location: location
-//     identityName: 'aksIdentity'
-//   }
-// }
 
 // APIM
 
@@ -284,8 +305,6 @@ module appgw 'modules/vnet/appgw.bicep' = {
     primaryBackendEndFQDN: primaryBackendEndFQDN
   }
 }
-
-// Need to publish APIM in AppGW with Certs and domains
 
 output acrName string = acr.name
 output keyvaultName string = keyvault.name

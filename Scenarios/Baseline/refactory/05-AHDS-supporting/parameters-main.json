@@ -26,6 +26,9 @@
     "APIMName": {
       "value": "APIM-AHDS"
     },
+    "privateDNSZoneSAfileName": {
+      "value": "privatelink.file.core.windows.net"
+    },
     "privateDNSZoneACRName": {
       "value": "privatelink.azurecr.io"
     },

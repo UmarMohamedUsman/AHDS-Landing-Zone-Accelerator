@@ -101,7 +101,7 @@ resource appGatewayCertificate 'Microsoft.Resources/deploymentScripts@2020-10-01
       Remove-AzKeyVaultNetworkRule -VaultName $vaultName -IpAddressRange $publicIp -SubscriptionId $subscriptionId
       '''
     retentionInterval: 'P1D'
-    cleanupPreference: 'OnExpiration'
+    cleanupPreference: 'OnSuccess'
   }
   identity: {
     type: 'UserAssigned'

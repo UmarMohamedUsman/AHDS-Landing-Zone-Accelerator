@@ -173,6 +173,22 @@ module privateDNSLinkSA 'modules/vnet/privatednslink.bicep' = {
   }
 }
 
+module privatednsSAfileZone 'modules/vnet/privatednszone.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsSAfileZone'
+  params: {
+    privateDNSZoneName: 'privatelink.file.core.windows.net'
+  }
+}
+
+module privateDNSLinkSAfile 'modules/vnet/privatednslink.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privateDNSLinkSAfile'
+  params: {
+    privateDnsZoneName: privatednsSAfileZone.outputs.privateDNSZoneName
+    vnetId: vnethub.id
+  }
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // APIM DNS Zones
 module privatednsazureapinet 'modules/vnet/privatednszone.bicep' = {
