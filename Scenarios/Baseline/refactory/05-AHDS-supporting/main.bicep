@@ -289,6 +289,8 @@ module certificate 'modules/vnet/certificate.bicep' = {
   ]
 }
 
+// Need to update the backend to point to the APIM
+// Fix Portal DNS Entry
 module appgw 'modules/vnet/appgw.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'appgw'
