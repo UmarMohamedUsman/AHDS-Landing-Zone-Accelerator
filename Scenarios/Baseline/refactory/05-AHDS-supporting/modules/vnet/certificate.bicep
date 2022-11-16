@@ -10,7 +10,7 @@ var secretName = replace(appGatewayFQDN,'.', '-')
 var subjectName='CN=${appGatewayFQDN}'
 
 var certData = appGatewayCertType == 'selfsigned' ? 'null' : loadFileAsBase64('../vnet/certs/appgw.pfx')
-var certPwd = appGatewayCertType == 'selfsigned' ? 'null' : certPassword
+var certPwd = appGatewayCertType == 'selfsigned' ? 'null' : certPassword == '' ? 'nullnopass' : certPassword
 
 resource accessPolicyGrant 'Microsoft.KeyVault/vaults/accessPolicies@2019-09-01' = {
   name: '${keyVaultName}/add'
@@ -93,8 +93,20 @@ resource appGatewayCertificate 'Microsoft.Resources/deploymentScripts@2020-10-01
         } while ($operation.Status -ne 'completed')
       }
       else {
-        $ss = Convertto-SecureString -String $certPwd -AsPlainText -Force;
-        Import-AzKeyVaultCertificate -Name $certificateName -VaultName $vaultName -CertificateString $certDataString -Password $ss
+
+        $bytesFromFileBase64 = [System.Convert]::FromBase64String($certDataString)
+        $filePath = Join-Path -Path (Get-Location).Path -ChildPath cert.pfx
+        [IO.File]::WriteAllBytes($filePath, $bytesFromFileBase64)
+
+        #Import-AzKeyVaultCertificate -Name $certificateName -VaultName $vaultName -CertificateString $certDataString -Password $ss
+
+        if($certPwd -eq 'nullnopass'){
+          Import-AzKeyVaultCertificate -Name $certificateName -VaultName $vaultName -FilePath $filePath
+        }
+        else{
+          $ss = Convertto-SecureString -String $certPwd -AsPlainText -Force;
+          Import-AzKeyVaultCertificate -Name $certificateName -VaultName $vaultName -FilePath $filePath -Password $ss
+        }
       }
 
       Write-Host "Removing current public ip address from allow list"
