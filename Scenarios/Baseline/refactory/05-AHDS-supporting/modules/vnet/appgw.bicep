@@ -94,6 +94,13 @@ resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
     backendAddressPools: [
       {
         name: backendAddressPoolName
+        properties: {
+          backendAddresses: [
+            {
+              fqdn: primaryBackendEndFQDN
+            }
+          ]
+        }
       }
     ]
     backendHttpSettingsCollection: [
