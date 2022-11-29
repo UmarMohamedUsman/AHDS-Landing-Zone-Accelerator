@@ -39,6 +39,11 @@ module rg 'modules/resource-group/rg.bicep' = {
   }
 }
 
+resource servicesSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
+  scope: resourceGroup(rg.name)
+  name: '${vnetName}/${subnetName}'
+}
+
 module acr 'modules/acr/acr.bicep' = {
   scope: resourceGroup(rg.name)
   name: acrName
@@ -46,48 +51,6 @@ module acr 'modules/acr/acr.bicep' = {
     location: location
     acrName: acrName
     acrSkuName: 'Premium'
-  }
-}
-
-module keyvault 'modules/keyvault/keyvault.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: keyvaultName
-  params: {
-    location: location
-    keyVaultsku: 'Standard'
-    name: keyvaultName
-    tenantId: subscription().tenantId
-    networkAction: 'Deny'
-  }
-}
-
-module storage 'modules/storage/storage.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: storageAccountName
-  params: {
-    location: location
-    storageAccountName: storageAccountName
-    storageAccountType: storageAccountType
-  }
-}
-
-resource servicesSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
-  scope: resourceGroup(rg.name)
-  name: '${vnetName}/${subnetName}'
-}
-
-module privateEndpointKeyVault 'modules/vnet/privateendpoint.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: keyVaultPrivateEndpointName
-  params: {
-    location: location
-    groupIds: [
-      'Vault'
-    ]
-    privateEndpointName: keyVaultPrivateEndpointName
-    privatelinkConnName: '${keyVaultPrivateEndpointName}-conn'
-    resourceId: keyvault.outputs.keyvaultId
-    subnetid: servicesSubnet.id
   }
 }
 
@@ -106,6 +69,70 @@ module privateEndpointAcr 'modules/vnet/privateendpoint.bicep' = {
   }
 }
 
+resource privateDNSZoneACR 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  scope: resourceGroup(rg.name)
+  name: privateDNSZoneACRName
+}
+
+module privateEndpointACRDNSSetting 'modules/vnet/privatedns.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'acr-pvtep-dns'
+  params: {
+    privateDNSZoneId: privateDNSZoneACR.id
+    privateEndpointName: privateEndpointAcr.name
+  }
+}
+module keyvault 'modules/keyvault/keyvault.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: keyvaultName
+  params: {
+    location: location
+    keyVaultsku: 'Standard'
+    name: keyvaultName
+    tenantId: subscription().tenantId
+    networkAction: 'Deny'
+  }
+}
+
+module privateEndpointKeyVault 'modules/vnet/privateendpoint.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: keyVaultPrivateEndpointName
+  params: {
+    location: location
+    groupIds: [
+      'Vault'
+    ]
+    privateEndpointName: keyVaultPrivateEndpointName
+    privatelinkConnName: '${keyVaultPrivateEndpointName}-conn'
+    resourceId: keyvault.outputs.keyvaultId
+    subnetid: servicesSubnet.id
+  }
+}
+
+resource privateDNSZoneKV 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  scope: resourceGroup(rg.name)
+  name: privateDNSZoneKVName
+}
+
+module privateEndpointKVDNSSetting 'modules/vnet/privatedns.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'kv-pvtep-dns'
+  params: {
+    privateDNSZoneId: privateDNSZoneKV.id
+    privateEndpointName: privateEndpointKeyVault.name
+  }
+}
+
+module storage 'modules/storage/storage.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: storageAccountName
+  params: {
+    location: location
+    storageAccountName: storageAccountName
+    storageAccountType: storageAccountType
+  }
+}
+
 module privateEndpointSA 'modules/vnet/privateendpoint.bicep' = {
   scope: resourceGroup(rg.name)
   name: saPrivateEndpointName
@@ -118,6 +145,20 @@ module privateEndpointSA 'modules/vnet/privateendpoint.bicep' = {
     privatelinkConnName: '${saPrivateEndpointName}-conn'
     resourceId: storage.outputs.storageAccountId
     subnetid: servicesSubnet.id
+  }
+}
+
+resource privateDNSZoneSA 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  scope: resourceGroup(rg.name)
+  name: privateDNSZoneSAName
+}
+
+module privateEndpointSADNSSetting 'modules/vnet/privatedns.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'sa-pvtep-dns'
+  params: {
+    privateDNSZoneId: privateDNSZoneSA.id
+    privateEndpointName: privateEndpointSA.name
   }
 }
 
@@ -150,45 +191,61 @@ module privateEndpointSAfileDNSSetting 'modules/vnet/privatedns.bicep' = {
   }
 }
 
-resource privateDNSZoneACR 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+module privateEndpointSAtable 'modules/vnet/privateendpoint.bicep' = {
   scope: resourceGroup(rg.name)
-  name: privateDNSZoneACRName
-}
-
-module privateEndpointACRDNSSetting 'modules/vnet/privatedns.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'acr-pvtep-dns'
+  name: '${saPrivateEndpointName}-table'
   params: {
-    privateDNSZoneId: privateDNSZoneACR.id
-    privateEndpointName: privateEndpointAcr.name
+    location: location
+    groupIds: [
+      'table'
+    ]
+    privateEndpointName: '${saPrivateEndpointName}-table'
+    privatelinkConnName: '${saPrivateEndpointName}-table-conn'
+    resourceId: storage.outputs.storageAccountId
+    subnetid: servicesSubnet.id
   }
 }
 
-resource privateDNSZoneKV 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+resource privateDNSZoneSAtable 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: resourceGroup(rg.name)
-  name: privateDNSZoneKVName
+  name: privateDNSZoneSAfileName
 }
 
-module privateEndpointKVDNSSetting 'modules/vnet/privatedns.bicep' = {
+module privateEndpointSAtableDNSSetting 'modules/vnet/privatedns.bicep' = {
   scope: resourceGroup(rg.name)
-  name: 'kv-pvtep-dns'
+  name: 'sa-file-pvtep-dns'
   params: {
-    privateDNSZoneId: privateDNSZoneKV.id
-    privateEndpointName: privateEndpointKeyVault.name
+    privateDNSZoneId: privateDNSZoneSAtable.id
+    privateEndpointName: privateEndpointSAtable.name
   }
 }
 
-resource privateDNSZoneSA 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+module privateEndpointSAqueue 'modules/vnet/privateendpoint.bicep' = {
   scope: resourceGroup(rg.name)
-  name: privateDNSZoneSAName
+  name: '${saPrivateEndpointName}-queue'
+  params: {
+    location: location
+    groupIds: [
+      'queue'
+    ]
+    privateEndpointName: '${saPrivateEndpointName}-queue'
+    privatelinkConnName: '${saPrivateEndpointName}-queue-conn'
+    resourceId: storage.outputs.storageAccountId
+    subnetid: servicesSubnet.id
+  }
 }
 
-module privateEndpointSADNSSetting 'modules/vnet/privatedns.bicep' = {
+resource privateDNSZoneSAqueue 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: resourceGroup(rg.name)
-  name: 'sa-pvtep-dns'
+  name: privateDNSZoneSAfileName
+}
+
+module privateEndpointSAqueueDNSSetting 'modules/vnet/privatedns.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'sa-file-pvtep-dns'
   params: {
-    privateDNSZoneId: privateDNSZoneSA.id
-    privateEndpointName: privateEndpointSA.name
+    privateDNSZoneId: privateDNSZoneSAqueue.id
+    privateEndpointName: privateEndpointSAqueue.name
   }
 }
 
@@ -289,9 +346,6 @@ module certificate 'modules/vnet/certificate.bicep' = {
   ]
 }
 
-// Need to update the backend to point to the APIM
-// Fix Portal DNS Entry
-// Add PE for Table and Queue
 module appgw 'modules/vnet/appgw.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'appgw'

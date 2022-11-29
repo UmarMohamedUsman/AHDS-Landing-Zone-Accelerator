@@ -189,6 +189,40 @@ module privateDNSLinkSAfile 'modules/vnet/privatednslink.bicep' = {
     vnetId: vnethub.id
   }
 }
+
+module privatednsSAtableZone 'modules/vnet/privatednszone.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsSAtableZone'
+  params: {
+    privateDNSZoneName: 'privatelink.table.core.windows.net'
+  }
+}
+
+module privateDNSLinkSAtable 'modules/vnet/privatednslink.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privateDNSLinkSAtable'
+  params: {
+    privateDnsZoneName: privatednsSAtableZone.outputs.privateDNSZoneName
+    vnetId: vnethub.id
+  }
+}
+
+module privatednsSAqueueZone 'modules/vnet/privatednszone.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsSAqueueZone'
+  params: {
+    privateDNSZoneName: 'privatelink.queue.core.windows.net'
+  }
+}
+
+module privateDNSLinkSAqueue 'modules/vnet/privatednslink.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privateDNSLinkSAqueue'
+  params: {
+    privateDnsZoneName: privatednsSAqueueZone.outputs.privateDNSZoneName
+    vnetId: vnethub.id
+  }
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // APIM DNS Zones
 module privatednsazureapinet 'modules/vnet/privatednszone.bicep' = {
