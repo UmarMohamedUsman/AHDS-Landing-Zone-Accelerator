@@ -39,7 +39,7 @@ param containerNames array = [
 ]
 param hostingPlanName string
 param fhirName string
-param workspaceName string
+param workspaceName string = 'eslzwks${uniqueString('workspacevws',utcNow('u'))}'
 param functionAppName string
 
 //var acrName = 'eslzacr${uniqueString(rgName, deployment().name)}'
@@ -234,7 +234,7 @@ resource privateDNSZoneSAtable 'Microsoft.Network/privateDnsZones@2020-06-01' ex
 
 module privateEndpointSAtableDNSSetting 'modules/vnet/privatedns.bicep' = {
   scope: resourceGroup(rg.name)
-  name: 'sa-file-pvtep-dns'
+  name: 'sa-table-pvtep-dns'
   params: {
     privateDNSZoneId: privateDNSZoneSAtable.id
     privateEndpointName: privateEndpointSAtable.name
@@ -263,7 +263,7 @@ resource privateDNSZoneSAqueue 'Microsoft.Network/privateDnsZones@2020-06-01' ex
 
 module privateEndpointSAqueueDNSSetting 'modules/vnet/privatedns.bicep' = {
   scope: resourceGroup(rg.name)
-  name: 'sa-file-pvtep-dns'
+  name: 'sa-queue-pvtep-dns'
   params: {
     privateDNSZoneId: privateDNSZoneSAqueue.id
     privateEndpointName: privateEndpointSAqueue.name

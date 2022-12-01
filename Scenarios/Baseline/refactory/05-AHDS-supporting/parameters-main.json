@@ -87,9 +87,6 @@
     "fhirName": {
       "value": "FHIR-AHDS"
     },
-    "workspaceName": {
-      "value": "Workspace-AHDS"
-    },
     "functionAppName":{
       "value": "FunctionApp-AHDS"
     }
