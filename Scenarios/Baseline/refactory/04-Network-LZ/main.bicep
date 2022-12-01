@@ -223,6 +223,40 @@ module privateDNSLinkSAqueue 'modules/vnet/privatednslink.bicep' = {
     vnetId: vnethub.id
   }
 }
+
+module privatednsAppSVCZone 'modules/vnet/privatednszone.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsAppSVCZone'
+  params: {
+    privateDNSZoneName: 'privatelink.azurewebsites.net'
+  }
+}
+
+module privateDNSLinkAppSVC 'modules/vnet/privatednslink.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privateDNSLinkAppSVC'
+  params: {
+    privateDnsZoneName: privatednsAppSVCZone.outputs.privateDNSZoneName
+    vnetId: vnethub.id
+  }
+}
+
+module privatednsAppSVCZonescm 'modules/vnet/privatednszone.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsAppSVCZonescm'
+  params: {
+    privateDNSZoneName: 'scm.privatelink.azurewebsites.net'
+  }
+}
+
+module privateDNSLinkAppSVCscm 'modules/vnet/privatednslink.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privateDNSLinkAppSVCscm'
+  params: {
+    privateDnsZoneName: privatednsAppSVCZonescm.outputs.privateDNSZoneName
+    vnetId: vnethub.id
+  }
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // APIM DNS Zones
 module privatednsazureapinet 'modules/vnet/privatednszone.bicep' = {

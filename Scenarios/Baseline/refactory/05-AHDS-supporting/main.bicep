@@ -3,15 +3,18 @@ targetScope = 'subscription'
 param rgName string
 param keyVaultPrivateEndpointName string
 param acrPrivateEndpointName string
+param functionAppPrivateEndpointName string
 param saPrivateEndpointName string
 param vnetName string
 param subnetName string
 param APIMsubnetName string
+param VNetIntegrationSubnetName string
 param APIMName string
 param privateDNSZoneSAfileName string
 param privateDNSZoneACRName string
 param privateDNSZoneKVName string
 param privateDNSZoneSAName string
+param privateDNSZoneFunctionAppName string
 param acrName string = 'eslzacr${uniqueString('acrvws',utcNow('u'))}'
 param keyvaultName string = 'eslz-kv-${uniqueString('acrvws',utcNow('u'))}'
 param storageAccountName string = 'eslzsa${uniqueString('ahds',utcNow('u'))}'
@@ -26,10 +29,23 @@ param primaryBackendEndFQDN string
 @description('Set to selfsigned if self signed certificates should be used for the Application Gateway. Set to custom and copy the pfx file to vnet/certs/appgw.pfx if custom certificates are to be used')
 param appGatewayCertType string
 @secure()
-param certPassword                  string
+param certPassword string
+param containerNames array = [
+  'bundles'
+  'ndjson'
+  'zip'
+  'export'
+  'export-trigger'
+]
+param hostingPlanName string
+param fhirName string
+param workspaceName string
+param functionAppName string
 
 //var acrName = 'eslzacr${uniqueString(rgName, deployment().name)}'
 //var keyvaultName = 'eslz-kv-${uniqueString(rgName, deployment().name)}'
+var audience ='https://${workspaceName}-${fhirName}.fhir.azurehealthcareapis.com'
+var functionContentShareName = 'function'
 
 module rg 'modules/resource-group/rg.bicep' = {
   name: rgName
@@ -42,6 +58,11 @@ module rg 'modules/resource-group/rg.bicep' = {
 resource servicesSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
   scope: resourceGroup(rg.name)
   name: '${vnetName}/${subnetName}'
+}
+
+resource VNetIntegrationSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
+  scope: resourceGroup(rg.name)
+  name: '${vnetName}/${VNetIntegrationSubnetName}'
 }
 
 module acr 'modules/acr/acr.bicep' = {
@@ -360,6 +381,178 @@ module appgw 'modules/vnet/appgw.bicep' = {
     appGatewayFQDN: appGatewayFQDN
     keyVaultSecretId: certificate.outputs.secretUri
     primaryBackendEndFQDN: primaryBackendEndFQDN
+  }
+}
+
+// Create FHIR service
+module fhir 'modules/ahds/fhirservice.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: fhirName
+  params: {
+    fhirName: fhirName
+    workspaceName: workspaceName
+    location: location
+  }
+}
+
+// Hosting plan App Service
+module hostingPlan 'modules/function/hostingplan.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: hostingPlanName
+  params: {
+    hostingPlanName: hostingPlanName
+    location: location
+    functionWorkers: 5
+  }
+}
+
+// Storage Container
+module container 'modules/Storage/container.bicep' = [for name in containerNames: {
+  scope: resourceGroup(rg.name)
+  name: '${name}'
+  params: {
+    containername: name
+    storageAccountName: storage.outputs.storageAccountName
+  }
+}]
+
+// Storage file share
+module functioncontentfileshare 'modules/Storage/fileshare.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: functionContentShareName
+  params: {
+    storageAccountName: storage.outputs.storageAccountName
+    functionContentShareName: functionContentShareName
+  }
+}
+
+// KeyVault Secret FS-URL
+module fsurlkvsecret 'modules/keyvault/kvsecrets.bicep'= {
+  scope: resourceGroup(rg.name)
+  name: 'fsurl'
+  params: {
+    kvname: keyvault.outputs.keyvaultName
+    secretName: 'FS-URL'
+    secretValue: audience
+  }
+}
+
+// KeyVault Secret FS-TENANT-NAME
+module tenantkvsecret 'modules/keyvault/kvsecrets.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'fstenant'
+  params: {
+    kvname: keyvault.outputs.keyvaultName
+    secretName: 'FS-TENANT-NAME'
+    secretValue: subscription().tenantId
+  }
+}
+
+// KeyVault Secret FS-RESOURCE
+module fsreskvsecret 'modules/keyvault/kvsecrets.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'fsresource'
+  params: {
+    kvname: keyvault.outputs.keyvaultName
+    secretName: 'FS-RESOURCE'
+    secretValue: audience
+  }
+}
+
+// KeyVault Secret FS-STORAGEACCT
+module sakvsecret 'modules/keyvault/kvsecrets.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'fsstorage'
+  params: {
+    kvname: keyvault.outputs.keyvaultName
+    secretName: 'FBI-STORAGEACCT'
+    secretValue: storage.outputs.storagecnn
+  }
+}
+
+// user assigned fhirloaderid
+module fnIdentity 'modules/Identity/userassigned.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'fnIdentity'
+  params: {
+    location: location
+    identityName: 'fhirloaderid'
+  }
+}
+
+// KeyVault Access fhirloaderid
+module kvaccess 'modules/keyvault/keyvaultaccess.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'kvaultAccess'
+  params: {
+    keyvaultManagedIdentityObjectId: fnIdentity.outputs.principalId
+    vaultName: keyvault.outputs.keyvaultName
+  }
+}
+
+// KeyVault RBAC fnvaultrole
+module fnvaultRole 'modules/Identity/kvaccess.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'fnvaultRole'
+  params: {
+    principalId: fnIdentity.outputs.principalId
+    vaultName: keyvault.outputs.keyvaultName
+  }
+}
+
+// FunctionApp
+module functionApp 'modules/function/functionapp.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'functionApp'
+  params: {
+    functionAppName: functionAppName
+    location: location
+    appInsightsInstrumentationKey: appInsights.outputs.appInsightsInstrumentationKey
+    storageAccountName: storage.outputs.storageAccountName
+    VNetIntegrationSubnetID: VNetIntegrationSubnet.id
+    functionContentShareName: functionContentShareName
+    hostingPlanName: hostingPlan.outputs.serverfarmname
+    kvname: keyvault.outputs.keyvaultName
+    fnIdentityId: fnIdentity.outputs.identityid
+  }
+  dependsOn:[
+    kvaccess
+    fnvaultRole
+    functioncontentfileshare
+    fsurlkvsecret
+    tenantkvsecret
+    fsreskvsecret
+    sakvsecret
+  ]
+}
+
+// FunctionApp PE
+module privateEndpointFunctionApp 'modules/vnet/privateendpoint.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: functionAppPrivateEndpointName
+  params: {
+    location: location
+    groupIds: [
+      'sites'
+    ]
+    privateEndpointName: functionAppPrivateEndpointName
+    privatelinkConnName: '${functionAppPrivateEndpointName}-conn'
+    resourceId: functionApp.outputs.fnappid
+    subnetid: servicesSubnet.id
+  }
+}
+
+resource privateDNSZoneFunctionApp 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  scope: resourceGroup(rg.name)
+  name: privateDNSZoneFunctionAppName
+}
+
+module privateEndpointFunctionAppDNSSetting 'modules/vnet/privatedns.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'functionApp-pvtep-dns'
+  params: {
+    privateDNSZoneId: privateDNSZoneFunctionApp.id
+    privateEndpointName: privateEndpointFunctionApp.name
   }
 }
 

@@ -25,3 +25,4 @@ resource keyvault 'Microsoft.KeyVault/vaults@2019-09-01' = {
 }
 
 output keyvaultId string = keyvault.id
+output keyvaultName string = keyvault.name

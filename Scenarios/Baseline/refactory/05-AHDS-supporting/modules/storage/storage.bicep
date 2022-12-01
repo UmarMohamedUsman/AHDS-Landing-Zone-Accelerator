@@ -23,5 +23,8 @@ resource sa 'Microsoft.Storage/storageAccounts@2021-06-01' = {
   properties: {}
 }
 
+var storagecnnstrng ='DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${sa.listKeys().keys[0].value}'
+
 output storageAccountName string = sa.name
 output storageAccountId string = sa.id
+output storagecnn string = storagecnnstrng

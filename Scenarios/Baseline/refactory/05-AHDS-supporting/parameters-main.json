@@ -14,11 +14,17 @@
     "saPrivateEndpointName": {
       "value": "sa-pvt-ep"
     },
+    "functionAppPrivateEndpointName": {
+      "value": "functionApp-pvt-ep"
+    },
     "vnetName": {
       "value": "VNet-SPOKE"
     },
     "subnetName": {
       "value": "servicespe"
+    },
+    "VNetIntegrationSubnetName":{
+      "value": "VNetIntegration"
     },
     "APIMsubnetName": {
       "value": "APIM"
@@ -37,6 +43,9 @@
     },
     "privateDNSZoneSAName": {
       "value": "privatelink.blob.core.windows.net"
+    },
+    "privateDNSZoneFunctionAppName": {
+      "value": "privatelink.azurewebsites.net"
     },
     "storageAccountType": {
       "value": "Standard_GZRS"
@@ -71,6 +80,18 @@
     },
     "primaryBackendEndFQDN":{
       "value": "APIM-AHDS.azure-api.net"
+    },
+    "hostingPlanName": {
+      "value": "HostingPlan-AHDS"
+    },
+    "fhirName": {
+      "value": "FHIR-AHDS"
+    },
+    "workspaceName": {
+      "value": "Workspace-AHDS"
+    },
+    "functionAppName":{
+      "value": "FunctionApp-AHDS"
     }
   }
 }

@@ -51,6 +51,20 @@
           "properties": {
             "addressPrefix": "10.1.5.0/24"
           }
+        },
+        {
+          "name": "VNetIntegration",
+          "properties": {
+            "addressPrefix": "10.1.6.0/24",
+            "delegations": [
+              {
+                "name": "delegation",
+                "properties": {
+                  "serviceName": "Microsoft.Web/serverFarms"
+                }
+              }
+            ]
+          }
         }
       ]
     },
