@@ -85,7 +85,7 @@
       "value": "HostingPlan-AHDS"
     },
     "fhirName": {
-      "value": "FHIR-AHDS"
+      "value": "fhir-ahds"
     },
     "functionAppName":{
       "value": "FunctionApp-AHDS"
