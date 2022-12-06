@@ -38,7 +38,10 @@ resource FHIR 'Microsoft.HealthcareApis/workspaces/fhirservices@2021-11-01' = {
     }
     publicNetworkAccess: 'Disabled'
     }
-    dependsOn: [ 
+    dependsOn: [
       Workspace
     ]
 }
+
+output fhirServiceURL string = audience
+output fhirID string = FHIR.id

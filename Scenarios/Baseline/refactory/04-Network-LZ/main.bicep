@@ -241,22 +241,6 @@ module privateDNSLinkAppSVC 'modules/vnet/privatednslink.bicep' = {
   }
 }
 
-module privatednsAppSVCZonescm 'modules/vnet/privatednszone.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'privatednsAppSVCZonescm'
-  params: {
-    privateDNSZoneName: 'scm.privatelink.azurewebsites.net'
-  }
-}
-
-module privateDNSLinkAppSVCscm 'modules/vnet/privatednslink.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'privateDNSLinkAppSVCscm'
-  params: {
-    privateDnsZoneName: privatednsAppSVCZonescm.outputs.privateDNSZoneName
-    vnetId: vnethub.id
-  }
-}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // APIM DNS Zones
 module privatednsazureapinet 'modules/vnet/privatednszone.bicep' = {
@@ -344,6 +328,41 @@ module privatednsscmazureapinetLink 'modules/vnet/privatednslink.bicep' = {
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// FHIR DNZ Zones
+module privatednsfhir 'modules/vnet/privatednszone.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsfhir'
+  params: {
+    privateDNSZoneName: 'privatelink.azurehealthcareapis.com'
+  }
+}
+
+module privatednsfhirLink 'modules/vnet/privatednslink.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsfhirLink'
+  params: {
+    privateDnsZoneName: privatednsfhir.outputs.privateDNSZoneName
+    vnetId: vnethub.id
+  }
+}
+
+module privatednsfhirdicom 'modules/vnet/privatednszone.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsfhirdicom'
+  params: {
+    privateDNSZoneName: 'privatelink.dicom.azurehealthcareapis.com'
+  }
+}
+
+module privatednsfhirdicomLink 'modules/vnet/privatednslink.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privatednsfhirdicomLink'
+  params: {
+    privateDnsZoneName: privatednsfhirdicom.outputs.privateDNSZoneName
+    vnetId: vnethub.id
+  }
+}
 
 module nsgappgwsubnet 'modules/vnet/nsg.bicep' = {
   scope: resourceGroup(rg.name)

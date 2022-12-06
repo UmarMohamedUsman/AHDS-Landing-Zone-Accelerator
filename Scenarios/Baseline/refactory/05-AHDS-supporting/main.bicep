@@ -15,6 +15,8 @@ param privateDNSZoneACRName string
 param privateDNSZoneKVName string
 param privateDNSZoneSAName string
 param privateDNSZoneFunctionAppName string
+param privateDNSZoneFHIRName string
+param privateDNSZoneFHIRdicomName string
 param acrName string = 'eslzacr${uniqueString('acrvws',utcNow('u'))}'
 param keyvaultName string = 'eslz-kv-${uniqueString('acrvws',utcNow('u'))}'
 param storageAccountName string = 'eslzsa${uniqueString('ahds',utcNow('u'))}'
@@ -41,6 +43,7 @@ param hostingPlanName string
 param fhirName string
 param workspaceName string = 'eslzwks${uniqueString('workspacevws',utcNow('u'))}'
 param functionAppName string
+param ApiUrlPath string
 
 //var acrName = 'eslzacr${uniqueString(rgName, deployment().name)}'
 //var keyvaultName = 'eslz-kv-${uniqueString(rgName, deployment().name)}'
@@ -385,6 +388,17 @@ module appgw 'modules/vnet/appgw.bicep' = {
 }
 
 // Create FHIR service
+
+module apimrole 'modules/Identity/apimrole.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'apimrole'
+  params: {
+    principalId: appgwIdentity.outputs.azidentity.properties.principalId
+    roleGuid: '312a565d-c81f-4fd8-895a-4e21e48d571c' //APIM Contributor
+    apimName: apimModule.outputs.apimName
+  }
+}
+
 module fhir 'modules/ahds/fhirservice.bicep' = {
   scope: resourceGroup(rg.name)
   name: fhirName
@@ -392,6 +406,49 @@ module fhir 'modules/ahds/fhirservice.bicep' = {
     fhirName: fhirName
     workspaceName: workspaceName
     location: location
+  }
+}
+
+module privateEndpointFHIR 'modules/vnet/privateendpoint.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'fhir-pvtep'
+  params: {
+    location: location
+    groupIds: [
+      'healthcareworkspace'
+    ]
+    privateEndpointName: 'fhir-pvtep'
+    privatelinkConnName: 'fhir-pvtep-conn'
+    resourceId: fhir.outputs.fhirID
+    subnetid: servicesSubnet.id
+  }
+}
+
+resource privateDNSZoneFHIR 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  scope: resourceGroup(rg.name)
+  name: privateDNSZoneFHIRName
+}
+
+module privateEndpointFHIRDNSSetting 'modules/vnet/privatedns.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'fhir-pvtep-dns'
+  params: {
+    privateDNSZoneId: privateDNSZoneFHIR.id
+    privateEndpointName: privateEndpointFHIR.name
+  }
+}
+
+resource privateDNSZoneFHIRdicom 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  scope: resourceGroup(rg.name)
+  name: privateDNSZoneFHIRdicomName
+}
+
+module privateEndpointFHIRdicomDNSSetting 'modules/vnet/privatedns.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'fhir-dicom-pvtep-dns'
+  params: {
+    privateDNSZoneId: privateDNSZoneFHIRdicom.id
+    privateEndpointName: privateEndpointFHIR.name
   }
 }
 
@@ -500,6 +557,24 @@ module fnvaultRole 'modules/Identity/kvaccess.bicep' = {
   }
 }
 
+module apimImportAPI 'modules/apim/api-deploymentScript.bicep' = {
+  name: 'apimImportAPI'
+  scope: resourceGroup(rg.name)
+  params: {
+    managedIdentity:    appgwIdentity.outputs.azidentity
+    location:           location
+    RGName:             rg.name
+    APIMName:           apimModule.outputs.apimName
+    serviceUrl:         fhir.outputs.fhirServiceURL
+    APIFormat:          'Swagger'
+    APIpath:            'fhir'
+    ApiUrlPath:         ApiUrlPath
+  }
+  dependsOn: [
+    apimrole
+  ]
+}
+
 // FunctionApp
 module functionApp 'modules/function/functionapp.bicep' = {
   scope: resourceGroup(rg.name)
@@ -559,3 +634,9 @@ module privateEndpointFunctionAppDNSSetting 'modules/vnet/privatedns.bicep' = {
 output acrName string = acr.name
 output keyvaultName string = keyvault.name
 output storageName string = storage.name
+
+// To do List
+/*
+Route Table need to be created for VNetIntegration Subnet, APIM, FIHRs
+need attention - Invalid SelfSigned Certificate - After just setting it again, it worked just fine in AppGW
+*/

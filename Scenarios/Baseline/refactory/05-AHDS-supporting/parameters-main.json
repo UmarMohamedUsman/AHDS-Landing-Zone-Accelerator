@@ -87,8 +87,17 @@
     "fhirName": {
       "value": "fhir-ahds"
     },
+    "privateDNSZoneFHIRName": {
+      "value": "privatelink.azurehealthcareapis.com"
+    },
+    "privateDNSZoneFHIRdicomName": {
+      "value": "privatelink.dicom.azurehealthcareapis.com"
+    },
     "functionAppName":{
       "value": "FunctionApp-AHDS"
+    },
+    "ApiUrlPath": {
+      "value": "https://raw.githubusercontent.com/Welasco/test/main/AHDS-Swagger.json"
     }
   }
 }
