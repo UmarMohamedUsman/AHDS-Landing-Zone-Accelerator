@@ -7,6 +7,7 @@ var fhirservicename = '${workspaceName}/${fhirName}'
 var loginURL = environment().authentication.loginEndpoint
 var authority = '${loginURL}${tenantId}'
 var audience = 'https://${workspaceName}-${fhirName}.fhir.azurehealthcareapis.com'
+var serviceHost = '${workspaceName}-${fhirName}.fhir.azurehealthcareapis.com'
 
 
 resource Workspace 'Microsoft.HealthcareApis/workspaces@2022-06-01' = {
@@ -45,3 +46,5 @@ resource FHIR 'Microsoft.HealthcareApis/workspaces/fhirservices@2021-11-01' = {
 
 output fhirServiceURL string = audience
 output fhirID string = FHIR.id
+output fhirWorkspaceID string = Workspace.id
+output serviceHost string = serviceHost

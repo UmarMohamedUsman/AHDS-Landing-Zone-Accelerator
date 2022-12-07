@@ -47,14 +47,14 @@ az deployment sub create -n "ESLZ-AKS-CLUSTER" -l "CentralUS" -f 06-AKS-cluster/
 az apim deletedservice purge --service-name APIM-AHDS --location EastUS
 
 # Delete Resource Groups
-az group delete -n ESLZ-AHDS-HUB -y
-az group delete -n ESLZ-AHDS-SPOKE -y
+az group delete -n ESLZ-AHDS-HUB -y --no-wait
+az group delete -n ESLZ-AHDS-SPOKE -y --no-wait
 # Delete Deployments
-az deployment sub delete -n ESLZ-HUB-AHDS
-az deployment sub delete -n ESLZ-AHDS-HUB-UDR
-az deployment sub delete -n ESLZ-HUB-VM
-az deployment sub delete -n ESLZ-Spoke-AHDS
-az deployment sub delete -n ESLZ-AHDS-Supporting
+az deployment sub delete -n ESLZ-HUB-AHDS -y --no-wait
+az deployment sub delete -n ESLZ-AHDS-HUB-UDR --no-wait
+az deployment sub delete -n ESLZ-HUB-VM --no-wait
+az deployment sub delete -n ESLZ-Spoke-AHDS --no-wait
+az deployment sub delete -n ESLZ-AHDS-Supporting --no-wait
 az deployment sub delete -n ESLZ-AKS-Supporting
 az deployment sub delete -n ESLZ-AKS-CLUSTER
 

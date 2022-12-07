@@ -419,7 +419,7 @@ module privateEndpointFHIR 'modules/vnet/privateendpoint.bicep' = {
     ]
     privateEndpointName: 'fhir-pvtep'
     privatelinkConnName: 'fhir-pvtep-conn'
-    resourceId: fhir.outputs.fhirID
+    resourceId: fhir.outputs.fhirWorkspaceID
     subnetid: servicesSubnet.id
   }
 }
@@ -565,7 +565,7 @@ module apimImportAPI 'modules/apim/api-deploymentScript.bicep' = {
     location:           location
     RGName:             rg.name
     APIMName:           apimModule.outputs.apimName
-    serviceUrl:         fhir.outputs.fhirServiceURL
+    serviceUrl:         fhir.outputs.serviceHost
     APIFormat:          'Swagger'
     APIpath:            'fhir'
     ApiUrlPath:         ApiUrlPath
