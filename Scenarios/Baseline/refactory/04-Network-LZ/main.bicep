@@ -347,23 +347,6 @@ module privatednsfhirLink 'modules/vnet/privatednslink.bicep' = {
   }
 }
 
-module privatednsfhirdicom 'modules/vnet/privatednszone.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'privatednsfhirdicom'
-  params: {
-    privateDNSZoneName: 'privatelink.dicom.azurehealthcareapis.com'
-  }
-}
-
-module privatednsfhirdicomLink 'modules/vnet/privatednslink.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'privatednsfhirdicomLink'
-  params: {
-    privateDnsZoneName: privatednsfhirdicom.outputs.privateDNSZoneName
-    vnetId: vnethub.id
-  }
-}
-
 module nsgappgwsubnet 'modules/vnet/nsg.bicep' = {
   scope: resourceGroup(rg.name)
   name: nsgAppGWName

@@ -90,9 +90,6 @@
     "privateDNSZoneFHIRName": {
       "value": "privatelink.azurehealthcareapis.com"
     },
-    "privateDNSZoneFHIRdicomName": {
-      "value": "privatelink.dicom.azurehealthcareapis.com"
-    },
     "functionAppName":{
       "value": "FunctionApp-AHDS"
     },

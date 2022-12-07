@@ -61,9 +61,37 @@ resource appGatewayCertificate 'Microsoft.Resources/deploymentScripts@2020-10-01
       $ErrorActionPreference = 'Stop'
       $DeploymentScriptOutputs = @{}
       Login-AzAccount -Identity -SubscriptionId $subscriptionId
+
       Write-Host "Adding the current public ip to the key vault allow list"
-      $publicIp = "$(Invoke-WebRequest https://api.ipify.org)/32"
-      Add-AzKeyVaultNetworkRule -VaultName $vaultName -IpAddressRange $publicIp -SubscriptionId $subscriptionId
+      $arrDomains = @(
+          "http://ifconfig.me",
+          "http://checkip.amazonaws.com/",
+          "http://ipecho.net/plain",
+          "http://icanhazip.com",
+          "http://ipinfo.io/ip",
+          "http://ipinfo.io/ip",
+          "http://wtfismyip.com/text",
+          "http://ipv4.icanhazip.com/",
+          "http://ifconfig.co",
+          "http://api.ipify.org"
+      )
+
+      foreach ($domain in $arrDomains) {
+          try {
+              $publicIp = "$((Invoke-RestMethod $domain -UserAgent "curl/7.83.1").trim())"
+              if ($publicIp.Contains(".")) {
+                  $publicIp = $publicIp + "/32"
+              }
+              else {
+                  $publicIp = $publicIp + "/128"
+              }
+              Add-AzKeyVaultNetworkRule -VaultName $vaultName -IpAddressRange $publicIp -SubscriptionId $subscriptionId
+              break
+          }
+          catch {
+              continue
+          }
+      }
 
       if ($certType -eq 'selfsigned') {
         $policy = New-AzKeyVaultCertificatePolicy -SubjectName $subjectName -IssuerName Self -ValidityInMonths 12 -Verbose

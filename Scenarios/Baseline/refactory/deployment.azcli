@@ -45,6 +45,7 @@ az deployment sub create -n "ESLZ-AKS-CLUSTER" -l "CentralUS" -f 06-AKS-cluster/
 # Clean Up
 
 az apim deletedservice purge --service-name APIM-AHDS --location EastUS
+az network vnet peering delete --resource-group ESLZ-AHDS-HUB --name HUB-to-Spoke --vnet-name VNet-HUB
 
 # Delete Resource Groups
 az group delete -n ESLZ-AHDS-HUB -y --no-wait
@@ -58,6 +59,10 @@ az deployment sub delete -n ESLZ-AHDS-Supporting --no-wait
 az deployment sub delete -n ESLZ-AKS-Supporting
 az deployment sub delete -n ESLZ-AKS-CLUSTER
 
+## Delete VNetA to VNetB peering. ##
+#az network vnet peering delete --resource-group ESLZ-AHDS-HUB --name HUB-to-Spoke --vnet-name VNet-HUB
+## Delete VNetB to VNetA peering. ##
+#az network vnet peering delete --resource-group myResourceGroup --name VNetBtoVNetA --vnet-name VNetB
 
 # AZ PowerShell
 # 03 Network HUB

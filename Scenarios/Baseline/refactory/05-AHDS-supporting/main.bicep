@@ -16,7 +16,6 @@ param privateDNSZoneKVName string
 param privateDNSZoneSAName string
 param privateDNSZoneFunctionAppName string
 param privateDNSZoneFHIRName string
-param privateDNSZoneFHIRdicomName string
 param acrName string = 'eslzacr${uniqueString('acrvws',utcNow('u'))}'
 param keyvaultName string = 'eslz-kv-${uniqueString('acrvws',utcNow('u'))}'
 param storageAccountName string = 'eslzsa${uniqueString('ahds',utcNow('u'))}'
@@ -434,20 +433,6 @@ module privateEndpointFHIRDNSSetting 'modules/vnet/privatedns.bicep' = {
   name: 'fhir-pvtep-dns'
   params: {
     privateDNSZoneId: privateDNSZoneFHIR.id
-    privateEndpointName: privateEndpointFHIR.name
-  }
-}
-
-resource privateDNSZoneFHIRdicom 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
-  scope: resourceGroup(rg.name)
-  name: privateDNSZoneFHIRdicomName
-}
-
-module privateEndpointFHIRdicomDNSSetting 'modules/vnet/privatedns.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'fhir-dicom-pvtep-dns'
-  params: {
-    privateDNSZoneId: privateDNSZoneFHIRdicom.id
     privateEndpointName: privateEndpointFHIR.name
   }
 }
