@@ -384,6 +384,9 @@ module appgw 'modules/vnet/appgw.bicep' = {
     keyVaultSecretId: certificate.outputs.secretUri
     primaryBackendEndFQDN: primaryBackendEndFQDN
   }
+  dependsOn: [
+    apimImportAPI
+  ]
 }
 
 // Create FHIR service

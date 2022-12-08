@@ -122,7 +122,7 @@ resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
           cookieBasedAffinity: 'Disabled'
           hostName: primaryBackendEndFQDN
           pickHostNameFromBackendAddress: false
-          requestTimeout: 20
+          requestTimeout: 30
           probe: {
             id: '${resourceId('Microsoft.Network/applicationGateways', appgwname)}/probes/APIM'
           }

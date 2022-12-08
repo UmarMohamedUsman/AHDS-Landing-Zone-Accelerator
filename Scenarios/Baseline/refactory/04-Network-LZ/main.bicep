@@ -156,6 +156,19 @@ module privateDNSLinkVault 'modules/vnet/privatednslink.bicep' = {
   }
 }
 
+module privateDNSLinkVaultSpoke 'modules/vnet/privatednslink.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'privateDNSLinkVaultSpoke'
+  params: {
+    privateDnsZoneName: privatednsVaultZone.outputs.privateDNSZoneName
+    vnetId: vnetspoke.outputs.vnetId
+    linkName: 'link-spoke'
+  }
+  dependsOn: [
+    privateDNSLinkVault
+  ]
+}
+
 module privatednsSAZone 'modules/vnet/privatednszone.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'privatednsSAZone'

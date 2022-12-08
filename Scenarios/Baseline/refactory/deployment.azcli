@@ -42,6 +42,13 @@ keyVaultName=$(az deployment sub show -n "ESLZ-AKS-Supporting" --query propertie
 
 az deployment sub create -n "ESLZ-AKS-CLUSTER" -l "CentralUS" -f 06-AKS-cluster/main.bicep -p 06-AKS-cluster/parameters-main.json -p acrName=$acrName -p keyvaultName=$keyVaultName -p kubernetesVersion=1.22.6 -p networkPlugin=azure
 
+# Quick Clean
+az deployment sub delete -n ESLZ-Spoke-AHDS --no-wait
+az deployment sub delete -n ESLZ-AHDS-Supporting --no-wait
+az group delete -n ESLZ-AHDS-SPOKE -y
+az network vnet peering delete --resource-group ESLZ-AHDS-HUB --name HUB-to-Spoke --vnet-name VNet-HUB
+az apim deletedservice purge --service-name APIM-AHDS --location EastUS
+
 # Clean Up
 
 az apim deletedservice purge --service-name APIM-AHDS --location EastUS
@@ -56,8 +63,6 @@ az deployment sub delete -n ESLZ-AHDS-HUB-UDR --no-wait
 az deployment sub delete -n ESLZ-HUB-VM --no-wait
 az deployment sub delete -n ESLZ-Spoke-AHDS --no-wait
 az deployment sub delete -n ESLZ-AHDS-Supporting --no-wait
-az deployment sub delete -n ESLZ-AKS-Supporting
-az deployment sub delete -n ESLZ-AKS-CLUSTER
 
 ## Delete VNetA to VNetB peering. ##
 #az network vnet peering delete --resource-group ESLZ-AHDS-HUB --name HUB-to-Spoke --vnet-name VNet-HUB
