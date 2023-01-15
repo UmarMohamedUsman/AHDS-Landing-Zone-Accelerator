@@ -36,3 +36,4 @@ Once we have the reference architecture deployed successfully, we will be able t
 - Azure Synapse uses serverless SQL/Spark pool to connect to Data Lake to query and analyze FHIR data
 - Hub VNet will contain Jumpbox VM along with Azure Bastion Host to securely access FHIR service configuration, testing FHIR service endpoints without Application Gateway, bulk loading FHIR data manually through Azure storage with private endpoint, etc.
 - If on-premises network connectivity established over Site-to-Site VPN or Express Route then on-premises users/services can directly access AHDS over this connection, rather than connecting through Application Gateway.
+- Enable Microsoft Defender for Cloud as well as HIPPA & HITRUST compliances. This will ensure customer deployment adhere to Microsoft Security Benchmark and Healthcare compliance requirements.
