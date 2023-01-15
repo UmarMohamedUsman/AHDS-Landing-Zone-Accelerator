@@ -4,7 +4,7 @@ param kvname string
 param secretName string
 
 @description('Specifies the value of the secret that you want to create.')
-//@secure()
+@secure()
 param secretValue string
 
 resource kv 'Microsoft.KeyVault/vaults@2019-09-01' existing = {

@@ -5,6 +5,9 @@
     "rgName": {
       "value": "ESLZ-AHDS-SPOKE"
     },
+    "rgHubName": {
+      "value": "ESLZ-AHDS-HUB"
+    },
     "keyVaultPrivateEndpointName": {
       "value": "keyvault-pvt-ep"
     },
@@ -30,7 +33,7 @@
       "value": "APIM"
     },
     "APIMName": {
-      "value": "APIM-AHDS"
+      "value": "APIM-AHDS3"
     },
     "privateDNSZoneSAfileName": {
       "value": "privatelink.file.core.windows.net"
@@ -91,10 +94,13 @@
       "value": "privatelink.azurehealthcareapis.com"
     },
     "functionAppName":{
-      "value": "FunctionApp-AHDS"
+      "value": "FunctionApp-AHDS2"
     },
     "ApiUrlPath": {
       "value": "https://raw.githubusercontent.com/Welasco/test/main/AHDS-Swagger.json"
+    },
+    "resourceSuffix": {
+      "value": "AHDS"
     }
   }
 }

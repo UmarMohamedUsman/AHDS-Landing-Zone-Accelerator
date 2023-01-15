@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
 // Parameters
-param rgName string
+param rgHubName string
 param vnetHubName string
 param hubVNETaddPrefixes array
 param hubSubnets array
@@ -12,13 +12,26 @@ param fwnetworkRuleCollections array
 param fwnatRuleCollections array
 param location string = deployment().location
 param availabilityZones array
+param resourceSuffix string
 
 module rg 'modules/resource-group/rg.bicep' = {
-  name: rgName
+  name: rgHubName
   params: {
-    rgName: rgName
+    rgHubName: rgHubName
     location: location
   }
+}
+
+module monitor 'modules/azmon/azmon.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'azmon'
+  params: {
+    location: location
+    resourceSuffix: resourceSuffix
+  }
+  dependsOn: [
+    rg
+  ]
 }
 
 module vnethub 'modules/vnet/vnet.bicep' = {
@@ -27,10 +40,11 @@ module vnethub 'modules/vnet/vnet.bicep' = {
   params: {
     location: location
     vnetAddressSpace: {
-        addressPrefixes: hubVNETaddPrefixes
+      addressPrefixes: hubVNETaddPrefixes
     }
     vnetName: vnetHubName
     subnets: hubSubnets
+    diagnosticWorkspaceId: monitor.outputs.logAnalyticsWorkspaceid
   }
   dependsOn: [
     rg
@@ -41,7 +55,7 @@ module publicipfw 'modules/vnet/publicip.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'AZFW-PIP'
   params: {
-    availabilityZones:availabilityZones
+    availabilityZones: availabilityZones
     location: location
     publicipName: 'AZFW-PIP'
     publicipproperties: {
@@ -51,6 +65,7 @@ module publicipfw 'modules/vnet/publicip.bicep' = {
       name: 'Standard'
       tier: 'Regional'
     }
+    diagnosticWorkspaceId: monitor.outputs.logAnalyticsWorkspaceid
   }
 }
 
@@ -82,6 +97,7 @@ module azfirewall 'modules/vnet/firewall.bicep' = {
     fwapplicationRuleCollections: fwapplicationRuleCollections
     fwnatRuleCollections: fwnatRuleCollections
     fwnetworkRuleCollections: fwnetworkRuleCollections
+    diagnosticWorkspaceId: monitor.outputs.logAnalyticsWorkspaceid
   }
 }
 
@@ -98,6 +114,7 @@ module publicipbastion 'modules/VM/publicip.bicep' = {
       name: 'Standard'
       tier: 'Regional'
     }
+    diagnosticWorkspaceId: monitor.outputs.logAnalyticsWorkspaceid
   }
 }
 
@@ -113,6 +130,7 @@ module bastion 'modules/VM/bastion.bicep' = {
     location: location
     bastionpipId: publicipbastion.outputs.publicipId
     subnetId: subnetbastion.id
+    diagnosticWorkspaceId: monitor.outputs.logAnalyticsWorkspaceid
   }
 }
 

@@ -1,11 +1,11 @@
-targetScope='resourceGroup'
+targetScope = 'resourceGroup'
 
 /*
  * Input parameters
 */
 
 @description('The name of the API Management resource to be created.')
-param apimName            string
+param apimName string
 
 @description('The subnet resource id to use for APIM.')
 @minLength(1)
@@ -32,6 +32,64 @@ param appInsightsName string
 param appInsightsId string
 param appInsightsInstrumentationKey string
 
+@description('Optional. Specifies the number of days that logs will be kept for; a value of 0 will retain data indefinitely.')
+@minValue(0)
+@maxValue(365)
+param diagnosticLogsRetentionInDays int = 365
+
+@description('Optional. Resource identifier of log analytics.')
+param diagnosticWorkspaceId string
+
+@description('Optional. The name of logs that will be streamed. "allLogs" includes all possible logs for the resource.')
+@allowed([
+  'allLogs'
+  'GatewayLogs'
+])
+param diagnosticLogCategoriesToEnable array = [
+  'allLogs'
+]
+
+@description('Optional. The name of metrics that will be streamed.')
+@allowed([
+  'AllMetrics'
+])
+param diagnosticMetricsToEnable array = [
+  'AllMetrics'
+]
+
+@description('Optional. The name of the diagnostic setting, if deployed.')
+param diagnosticSettingsName string = '${apimName}-diagnosticSettings'
+
+var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
+  category: category
+  enabled: true
+  retentionPolicy: {
+    enabled: true
+    days: diagnosticLogsRetentionInDays
+  }
+}]
+
+var diagnosticsLogs = contains(diagnosticLogCategoriesToEnable, 'allLogs') ? [
+  {
+    categoryGroup: 'allLogs'
+    enabled: true
+    retentionPolicy: {
+      enabled: true
+      days: diagnosticLogsRetentionInDays
+    }
+  }
+] : diagnosticsLogsSpecified
+
+var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
+  category: metric
+  timeGrain: null
+  enabled: true
+  retentionPolicy: {
+    enabled: true
+    days: diagnosticLogsRetentionInDays
+  }
+}]
+
 /*
  * Resources
 */
@@ -39,11 +97,11 @@ param appInsightsInstrumentationKey string
 resource apimName_resource 'Microsoft.ApiManagement/service@2020-12-01' = {
   name: apimName
   location: location
-  sku:{
+  sku: {
     capacity: capacity
     name: skuName
   }
-  properties:{
+  properties: {
     virtualNetworkType: 'Internal'
     publisherEmail: publisherEmail
     publisherName: publisherName
@@ -76,6 +134,16 @@ resource apimName_applicationinsights 'Microsoft.ApiManagement/service/diagnosti
       samplingType: 'fixed'
     }
   }
+}
+
+resource apiManagementService_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: diagnosticSettingsName
+  properties: {
+    workspaceId: diagnosticWorkspaceId
+    metrics: diagnosticsMetrics
+    logs: diagnosticsLogs
+  }
+  scope: apimName_resource
 }
 
 output apimName string = apimName_resource.name
