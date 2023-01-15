@@ -13,6 +13,33 @@ param storageAccountType string
 param location string
 param storageAccountName string
 
+@description('Optional. Specifies the number of days that logs will be kept for; a value of 0 will retain data indefinitely.')
+@minValue(0)
+@maxValue(365)
+param diagnosticLogsRetentionInDays int = 365
+
+@description('Optional. Resource ID of the diagnostic log analytics workspace.')
+param diagnosticWorkspaceId string
+
+@description('Optional. The name of metrics that will be streamed.')
+@allowed([
+  'Transaction'
+])
+param diagnosticMetricsToEnable array = [
+  'Transaction'
+]
+@description('Optional. The name of the diagnostic setting, if deployed.')
+param diagnosticSettingsName string = '${storageAccountName}-diagnosticSettings-001'
+
+var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
+  category: metric
+  timeGrain: null
+  enabled: true
+  retentionPolicy: {
+    enabled: true
+    days: diagnosticLogsRetentionInDays
+  }
+}]
 resource sa 'Microsoft.Storage/storageAccounts@2021-06-01' = {
   name: storageAccountName
   location: location
@@ -23,7 +50,16 @@ resource sa 'Microsoft.Storage/storageAccounts@2021-06-01' = {
   properties: {}
 }
 
-var storagecnnstrng ='DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${sa.listKeys().keys[0].value}'
+var storagecnnstrng = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${sa.listKeys().keys[0].value}'
+
+resource storageAccount_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: diagnosticSettingsName
+  properties: {
+    workspaceId: diagnosticWorkspaceId
+    metrics: diagnosticsMetrics
+  }
+  scope: sa
+}
 
 output storageAccountName string = sa.name
 output storageAccountId string = sa.id

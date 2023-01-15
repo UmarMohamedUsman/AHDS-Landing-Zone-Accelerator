@@ -1,4 +1,4 @@
-targetScope='resourceGroup'
+targetScope = 'resourceGroup'
 // Parameters
 @description('Azure location to which the resources are to be deployed')
 param location string
@@ -25,7 +25,6 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06
   })
 }
 
-
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: appInsightsName
   location: location
@@ -40,3 +39,4 @@ output appInsightsConnectionString string = appInsights.properties.ConnectionStr
 output appInsightsName string = appInsights.name
 output appInsightsId string = appInsights.id
 output appInsightsInstrumentationKey string = appInsights.properties.InstrumentationKey
+output logAnalyticsWorkspaceid string = logAnalyticsWorkspace.id
