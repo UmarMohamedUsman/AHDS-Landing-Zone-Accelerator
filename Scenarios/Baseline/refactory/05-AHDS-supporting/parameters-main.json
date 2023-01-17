@@ -33,7 +33,7 @@
       "value": "APIM"
     },
     "APIMName": {
-      "value": "APIM-AHDS3"
+      "value": "APIM-AHDS-vws"
     },
     "privateDNSZoneSAfileName": {
       "value": "privatelink.file.core.windows.net"
