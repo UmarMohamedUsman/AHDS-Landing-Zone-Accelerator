@@ -8,6 +8,59 @@ param fnIdentityId string
 param VNetIntegrationSubnetID string
 param kvname string
 
+@description('Optional. Specifies the number of days that logs will be kept for; a value of 0 will retain data indefinitely.')
+@minValue(0)
+@maxValue(365)
+param diagnosticLogsRetentionInDays int = 365
+
+@description('Optional. Resource identifier of log analytics.')
+param diagnosticWorkspaceId string
+
+param diagnosticLogCategoriesToEnable array = [
+  'allLogs'
+]
+
+@description('Optional. The name of metrics that will be streamed.')
+@allowed([
+  'AllMetrics'
+])
+param diagnosticMetricsToEnable array = [
+  'AllMetrics'
+]
+
+@description('Optional. The name of the diagnostic setting, if deployed.')
+param diagnosticSettingsName string = '${functionAppName}-diagnosticSettings-001'
+
+var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
+  category: category
+  enabled: true
+  retentionPolicy: {
+    enabled: true
+    days: diagnosticLogsRetentionInDays
+  }
+}]
+
+var diagnosticsLogs = contains(diagnosticLogCategoriesToEnable, 'allLogs') ? [
+  {
+    categoryGroup: 'allLogs'
+    enabled: true
+    retentionPolicy: {
+      enabled: true
+      days: diagnosticLogsRetentionInDays
+    }
+  }
+] : diagnosticsLogsSpecified
+
+var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
+  category: metric
+  timeGrain: null
+  enabled: true
+  retentionPolicy: {
+    enabled: true
+    days: diagnosticLogsRetentionInDays
+  }
+}]
+
 var runtime  = 'dotnet'
 var repourl  = 'https://github.com/microsoft/fhir-loader'
 
@@ -128,6 +181,16 @@ resource functiondeploy 'Microsoft.Web/sites/sourcecontrols@2022-03-01' = {
     isManualIntegration: true
     repoUrl: repourl
   }
+}
+
+resource functionApp_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: diagnosticSettingsName
+  properties: {
+    workspaceId: diagnosticWorkspaceId
+    metrics: diagnosticsMetrics
+    logs: diagnosticsLogs
+  }
+  scope: functionApp
 }
 
 output fnappidentity string = functionApp.identity.principalId

@@ -1,6 +1,8 @@
 param subnetId string
 param vmSize string
 param location string = resourceGroup().location
+@description('Optional. Resource identifier of log analytics.')
+param diagnosticWorkspaceId string
 
 @secure()
 param secrets object
@@ -11,6 +13,7 @@ module keyvault '../keyvault/keyvault.bicep' = {
     nameSufix: 'jumpbox'
     location: location
     secrets: secrets
+    diagnosticWorkspaceId: diagnosticWorkspaceId
   }
 }
 
@@ -19,6 +22,15 @@ module jbnic '../vnet/nic.bicep' = {
   params: {
     location: location
     subnetId: subnetId
+    diagnosticWorkspaceId: diagnosticWorkspaceId
+  }
+}
+
+module staccount '../storageaccount/storageaccount.bicep' = {
+  name: 'sa-VM'
+  params: {
+    nameSufix: 'jumpbox'
+    location: location
   }
 }
 
@@ -54,6 +66,12 @@ resource jumpbox 'Microsoft.Compute/virtualMachines@2021-03-01' = {
           id: jbnic.outputs.nicId
         }
       ]
+    }
+    diagnosticsProfile:{
+      bootDiagnostics:{
+        enabled: true
+        storageUri: staccount.outputs.primaryBlobEndpoint
+      }
     }
   }
 }

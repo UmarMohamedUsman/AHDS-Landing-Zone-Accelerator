@@ -1,6 +1,7 @@
 targetScope = 'subscription'
 
 // Parameters
+param rgHubName string
 param rgName string
 param vnetSpokeName string
 param spokeVNETaddPrefixes array
@@ -14,8 +15,13 @@ param nsgAppGWName string
 param rtAppGWSubnetName string
 param dhcpOptions object
 param location string = deployment().location
+param resourceSuffix string
 
-
+//logAnalyticsWorkspace
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06-01' existing = {
+  scope: resourceGroup(rgHubName)
+  name: 'log-${resourceSuffix}'
+}
 
 module rg 'modules/resource-group/rg.bicep' = {
   name: rgName
@@ -36,6 +42,7 @@ module vnetspoke 'modules/vnet/vnet.bicep' = {
     vnetName: vnetSpokeName
     subnets: spokeSubnets
     dhcpOptions: dhcpOptions
+    diagnosticWorkspaceId: logAnalyticsWorkspace.id
   }
   dependsOn: [
     rg
@@ -48,6 +55,7 @@ module nsgfhirsubnet 'modules/vnet/nsg.bicep' = {
   params: {
     location: location
     nsgName: nsgFHIRName
+    diagnosticWorkspaceId: logAnalyticsWorkspace.id
   }
 }
 
@@ -364,6 +372,7 @@ module nsgappgwsubnet 'modules/vnet/nsg.bicep' = {
   scope: resourceGroup(rg.name)
   name: nsgAppGWName
   params: {
+    diagnosticWorkspaceId: logAnalyticsWorkspace.id
     location: location
     nsgName: nsgAppGWName
     securityRules: [
@@ -421,6 +430,7 @@ module nsgappgwsubnet 'modules/vnet/nsg.bicep' = {
       }
     ]
   }
+
 }
 
 module appgwroutetable 'modules/vnet/routetable.bicep' = {

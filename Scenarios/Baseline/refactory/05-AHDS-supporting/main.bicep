@@ -1,5 +1,7 @@
 targetScope = 'subscription'
 
+param rgHubName string
+param resourceSuffix string
 param rgName string
 param keyVaultPrivateEndpointName string
 param acrPrivateEndpointName string
@@ -16,9 +18,9 @@ param privateDNSZoneKVName string
 param privateDNSZoneSAName string
 param privateDNSZoneFunctionAppName string
 param privateDNSZoneFHIRName string
-param acrName string = 'eslzacr${uniqueString('acrvws',utcNow('u'))}'
-param keyvaultName string = 'eslz-kv-${uniqueString('acrvws',utcNow('u'))}'
-param storageAccountName string = 'eslzsa${uniqueString('ahds',utcNow('u'))}'
+param acrName string = 'eslzacr${uniqueString('acrvws', utcNow('u'))}'
+param keyvaultName string = 'eslz-kv-${uniqueString('acrvws', utcNow('u'))}'
+param storageAccountName string = 'eslzsa${uniqueString('ahds', utcNow('u'))}'
 param storageAccountType string
 param location string = deployment().location
 param appGatewayName string
@@ -40,14 +42,26 @@ param containerNames array = [
 ]
 param hostingPlanName string
 param fhirName string
-param workspaceName string = 'eslzwks${uniqueString('workspacevws',utcNow('u'))}'
+param workspaceName string = 'eslzwks${uniqueString('workspacevws', utcNow('u'))}'
 param functionAppName string
 param ApiUrlPath string
 
 //var acrName = 'eslzacr${uniqueString(rgName, deployment().name)}'
 //var keyvaultName = 'eslz-kv-${uniqueString(rgName, deployment().name)}'
-var audience ='https://${workspaceName}-${fhirName}.fhir.azurehealthcareapis.com'
+var audience = 'https://${workspaceName}-${fhirName}.fhir.azurehealthcareapis.com'
 var functionContentShareName = 'function'
+
+//logAnalyticsWorkspace
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06-01' existing = {
+  scope: resourceGroup(rgHubName)
+  name: 'log-${resourceSuffix}'
+}
+
+//appInsights
+resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
+  scope: resourceGroup(rgHubName)
+  name: 'appi-${resourceSuffix}'
+}
 
 module rg 'modules/resource-group/rg.bicep' = {
   name: rgName
@@ -74,6 +88,7 @@ module acr 'modules/acr/acr.bicep' = {
     location: location
     acrName: acrName
     acrSkuName: 'Premium'
+    diagnosticWorkspaceId: logAnalyticsWorkspace.id
   }
 }
 
@@ -114,6 +129,7 @@ module keyvault 'modules/keyvault/keyvault.bicep' = {
     name: keyvaultName
     tenantId: subscription().tenantId
     networkAction: 'Deny'
+    diagnosticWorkspaceId: logAnalyticsWorkspace.id
   }
 }
 
@@ -153,6 +169,7 @@ module storage 'modules/storage/storage.bicep' = {
     location: location
     storageAccountName: storageAccountName
     storageAccountType: storageAccountType
+    diagnosticWorkspaceId: logAnalyticsWorkspace.id
   }
 }
 
@@ -279,25 +296,17 @@ resource APIMSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' exist
   name: '${vnetName}/${APIMsubnetName}'
 }
 
-module appInsights 'modules/azmon/azmon.bicep' = {
-  name: 'azmon'
-  scope: resourceGroup(rg.name)
-  params: {
-    location: location
-    resourceSuffix: 'AHDS'
-  }
-}
-
-module apimModule 'modules/apim/apim.bicep'  = {
+module apimModule 'modules/apim/apim.bicep' = {
   name: 'apimDeploy'
   scope: resourceGroup(rg.name)
   params: {
     apimName: APIMName
     apimSubnetId: APIMSubnet.id
     location: location
-    appInsightsName: appInsights.outputs.appInsightsName
-    appInsightsId: appInsights.outputs.appInsightsId
-    appInsightsInstrumentationKey: appInsights.outputs.appInsightsInstrumentationKey
+    appInsightsName: appInsights.name
+    appInsightsId: appInsights.id
+    appInsightsInstrumentationKey: appInsights.properties.InstrumentationKey
+    diagnosticWorkspaceId: logAnalyticsWorkspace.id
   }
 }
 
@@ -316,7 +325,7 @@ module publicipappgw 'modules/vnet/publicip.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'APPGW-PIP'
   params: {
-    availabilityZones:availabilityZones
+    availabilityZones: availabilityZones
     location: location
     publicipName: 'APPGW-PIP'
     publicipproperties: {
@@ -326,6 +335,7 @@ module publicipappgw 'modules/vnet/publicip.bicep' = {
       name: 'Standard'
       tier: 'Regional'
     }
+    diagnosticWorkspaceId: logAnalyticsWorkspace.id
   }
 }
 
@@ -357,12 +367,12 @@ module certificate 'modules/vnet/certificate.bicep' = {
   name: 'certificate'
   scope: resourceGroup(rg.name)
   params: {
-    managedIdentity:    appgwIdentity.outputs.azidentity
-    keyVaultName:       keyvaultName
-    location:           location
-    appGatewayFQDN:     appGatewayFQDN
+    managedIdentity: appgwIdentity.outputs.azidentity
+    keyVaultName: keyvaultName
+    location: location
+    appGatewayFQDN: appGatewayFQDN
     appGatewayCertType: appGatewayCertType
-    certPassword:       certPassword
+    certPassword: certPassword
   }
   dependsOn: [
     kvrole
@@ -383,6 +393,7 @@ module appgw 'modules/vnet/appgw.bicep' = {
     appGatewayFQDN: appGatewayFQDN
     keyVaultSecretId: certificate.outputs.secretUri
     primaryBackendEndFQDN: primaryBackendEndFQDN
+    diagnosticWorkspaceId: logAnalyticsWorkspace.id
   }
   dependsOn: [
     apimImportAPI
@@ -408,6 +419,7 @@ module fhir 'modules/ahds/fhirservice.bicep' = {
     fhirName: fhirName
     workspaceName: workspaceName
     location: location
+    diagnosticWorkspaceId: logAnalyticsWorkspace.id
   }
 }
 
@@ -472,7 +484,7 @@ module functioncontentfileshare 'modules/Storage/fileshare.bicep' = {
 }
 
 // KeyVault Secret FS-URL
-module fsurlkvsecret 'modules/keyvault/kvsecrets.bicep'= {
+module fsurlkvsecret 'modules/keyvault/kvsecrets.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'fsurl'
   params: {
@@ -549,14 +561,14 @@ module apimImportAPI 'modules/apim/api-deploymentScript.bicep' = {
   name: 'apimImportAPI'
   scope: resourceGroup(rg.name)
   params: {
-    managedIdentity:    appgwIdentity.outputs.azidentity
-    location:           location
-    RGName:             rg.name
-    APIMName:           apimModule.outputs.apimName
-    serviceUrl:         fhir.outputs.serviceHost
-    APIFormat:          'Swagger'
-    APIpath:            'fhir'
-    ApiUrlPath:         ApiUrlPath
+    managedIdentity: appgwIdentity.outputs.azidentity
+    location: location
+    RGName: rg.name
+    APIMName: apimModule.outputs.apimName
+    serviceUrl: fhir.outputs.serviceHost
+    APIFormat: 'Swagger'
+    APIpath: 'fhir'
+    ApiUrlPath: ApiUrlPath
   }
   dependsOn: [
     apimrole
@@ -570,15 +582,16 @@ module functionApp 'modules/function/functionapp.bicep' = {
   params: {
     functionAppName: functionAppName
     location: location
-    appInsightsInstrumentationKey: appInsights.outputs.appInsightsInstrumentationKey
+    appInsightsInstrumentationKey: appInsights.properties.InstrumentationKey
     storageAccountName: storage.outputs.storageAccountName
     VNetIntegrationSubnetID: VNetIntegrationSubnet.id
     functionContentShareName: functionContentShareName
     hostingPlanName: hostingPlan.outputs.serverfarmname
     kvname: keyvault.outputs.keyvaultName
     fnIdentityId: fnIdentity.outputs.identityid
+    diagnosticWorkspaceId: logAnalyticsWorkspace.id
   }
-  dependsOn:[
+  dependsOn: [
     kvaccess
     fnvaultRole
     functioncontentfileshare

@@ -14,9 +14,69 @@ var httpslistenerName = 'httpslistener'
 var backendAddressPoolName = 'backend-add-pool'
 var backendHttpSettingsCollectionName = 'backend-http-settings'
 var backendHttpsSettingsCollectionName = 'backend-https-settings'
+@secure()
 param keyVaultSecretId string
 param availabilityZones array
 param probeUrl string = '/status-0123456789abcdef'
+@description('Optional. Specifies the number of days that logs will be kept for; a value of 0 will retain data indefinitely.')
+@minValue(0)
+@maxValue(365)
+param diagnosticLogsRetentionInDays int = 365
+
+@description('Optional. Resource ID of the diagnostic log analytics workspace. For security reasons, it is recommended to set diagnostic settings to send data to either storage account, log analytics workspace or event hub.')
+param diagnosticWorkspaceId string
+
+@description('Optional. The name of logs that will be streamed. "allLogs" includes all possible logs for the resource.')
+@allowed([
+  'allLogs'
+  'ApplicationGatewayAccessLog'
+  'ApplicationGatewayPerformanceLog'
+  'ApplicationGatewayFirewallLog'
+])
+param diagnosticLogCategoriesToEnable array = [
+  'allLogs'
+]
+
+@description('Optional. The name of metrics that will be streamed.')
+@allowed([
+  'AllMetrics'
+])
+param diagnosticMetricsToEnable array = [
+  'AllMetrics'
+]
+
+@description('Optional. The name of the diagnostic setting, if deployed.')
+param diagnosticSettingsName string = '${appgwname}-diagnosticSettings-001'
+
+var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
+  category: category
+  enabled: true
+  retentionPolicy: {
+    enabled: true
+    days: diagnosticLogsRetentionInDays
+  }
+}]
+
+var diagnosticsLogs = contains(diagnosticLogCategoriesToEnable, 'allLogs') ? [
+  {
+    categoryGroup: 'allLogs'
+    enabled: true
+    retentionPolicy: {
+      enabled: true
+      days: diagnosticLogsRetentionInDays
+    }
+  }
+] : diagnosticsLogsSpecified
+
+var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
+  category: metric
+  timeGrain: null
+  enabled: true
+  retentionPolicy: {
+    enabled: true
+    days: diagnosticLogsRetentionInDays
+  }
+}]
 
 resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
   name: appgwname
@@ -73,7 +133,7 @@ resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
       {
         name: appGatewayFQDN
         properties: {
-          keyVaultSecretId:  keyVaultSecretId
+          keyVaultSecretId: keyVaultSecretId
         }
       }
     ]
@@ -81,14 +141,14 @@ resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
       minProtocolVersion: 'TLSv1_2'
       policyType: 'Custom'
       cipherSuites: [
-         'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256'
-         'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384'
-         'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256'
-         'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384'
-         'TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256'
-         'TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384'
-         'TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256'
-         'TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384'
+        'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256'
+        'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384'
+        'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256'
+        'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384'
+        'TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256'
+        'TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384'
+        'TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256'
+        'TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384'
       ]
     }
     backendAddressPools: [
@@ -164,7 +224,7 @@ resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
     requestRoutingRules: [
       {
         name: 'apim'
-        properties:{
+        properties: {
           ruleType: 'Basic'
           httpListener: {
             id: resourceId('Microsoft.Network/applicationGateways/httpListeners', appgwname, httpslistenerName)
@@ -212,3 +272,12 @@ resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
   }
 }
 
+resource applicationGateway_diagnosticSettingName 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: diagnosticSettingsName
+  properties: {
+    workspaceId: diagnosticWorkspaceId
+    metrics: diagnosticsMetrics
+    logs: diagnosticsLogs
+  }
+  scope: appgw
+}

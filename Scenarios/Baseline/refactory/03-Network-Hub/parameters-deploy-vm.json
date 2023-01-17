@@ -16,6 +16,9 @@
     },
     "adminUsername" : {
       "value": "jumpboxadmin"
+    },
+    "resourceSuffix":{
+      "value": "AHDS"
     }
   }
 }
