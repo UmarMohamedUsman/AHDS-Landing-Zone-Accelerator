@@ -134,7 +134,7 @@ module privatednsACRZone 'modules/vnet/privatednszone.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'privatednsACRZone'
   params: {
-    privateDNSZoneName: 'privatelink.azurecr.io'
+    privateDNSZoneName: 'privatelink${environment().suffixes.acrLoginServer}'
   }
 }
 
@@ -181,7 +181,7 @@ module privatednsSAZone 'modules/vnet/privatednszone.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'privatednsSAZone'
   params: {
-    privateDNSZoneName: 'privatelink.blob.core.windows.net'
+    privateDNSZoneName: 'privatelink.blob.${environment().suffixes.storage}'
   }
 }
 
@@ -198,7 +198,7 @@ module privatednsSAfileZone 'modules/vnet/privatednszone.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'privatednsSAfileZone'
   params: {
-    privateDNSZoneName: 'privatelink.file.core.windows.net'
+    privateDNSZoneName: 'privatelink.file.${environment().suffixes.storage}'
   }
 }
 
@@ -215,7 +215,7 @@ module privatednsSAtableZone 'modules/vnet/privatednszone.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'privatednsSAtableZone'
   params: {
-    privateDNSZoneName: 'privatelink.table.core.windows.net'
+    privateDNSZoneName: 'privatelink.table.${environment().suffixes.storage}'
   }
 }
 
@@ -232,7 +232,7 @@ module privatednsSAqueueZone 'modules/vnet/privatednszone.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'privatednsSAqueueZone'
   params: {
-    privateDNSZoneName: 'privatelink.queue.core.windows.net'
+    privateDNSZoneName: 'privatelink.queue.${environment().suffixes.storage}'
   }
 }
 
