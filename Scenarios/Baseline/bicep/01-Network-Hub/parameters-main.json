@@ -78,9 +78,7 @@
                 ],
                 "targetFqdns": [
                   "ifconfig.co",
-                  "api.snapcraft.io",
                   "jsonip.com",
-                  "kubernaut.io",
                   "motd.ubuntu.com"
                 ],
                 "sourceAddresses": [
@@ -107,8 +105,6 @@
                   }
                 ],
                 "targetFqdns": [
-                  "*.azmk8s.io",
-                  "aksrepos.azurecr.io",
                   "*.blob.core.windows.net",
                   "*.cdn.mscr.io",
                   "*.opinsights.azure.com",
@@ -129,11 +125,7 @@
                 "targetFqdns": [
                   "*.azurecr.io",
                   "*.gcr.io",
-                  "*.docker.io",
-                  "quay.io",
-                  "*.quay.io",
-                  "*.cloudfront.net",
-                  "production.cloudflare.docker.com"
+                  "*.docker.io"
                 ],
                 "sourceAddresses": [
                   "10.1.1.0/24"
@@ -152,31 +144,9 @@
                   "grafana.com",
                   "stats.grafana.org",
                   "github.com",
-                  "charts.bitnami.com",
                   "raw.githubusercontent.com",
                   "*.letsencrypt.org",
-                  "usage.projectcalico.org",
                   "vortex.data.microsoft.com"
-                ],
-                "sourceAddresses": [
-                  "10.1.1.0/24"
-                ]
-              },
-              {
-                "name": "Sample-FQDN-TAG",
-                "protocols": [
-                  {
-                    "port": 80,
-                    "protocolType": "Http"
-                  },
-                  {
-                    "port": 443,
-                    "protocolType": "Https"
-                  }
-                ],
-                "targetFqdns": [],
-                "fqdnTags": [
-                  "AzureKubernetesService"
                 ],
                 "sourceAddresses": [
                   "10.1.1.0/24"
