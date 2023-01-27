@@ -306,7 +306,7 @@ module apimModule 'modules/apim/apim.bicep' = {
   }
 }
 
-module apimDNSRecords 'modules/vnet/privatednsrecords.bicep' = {
+module apimDNSRecords 'modules/vnet/apimprivatednsrecords.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'apimDNSRecords'
   params: {
