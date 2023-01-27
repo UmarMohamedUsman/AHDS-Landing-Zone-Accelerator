@@ -63,12 +63,8 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: 'appi-${resourceSuffix}'
 }
 
-module rg 'modules/resource-group/rg.bicep' = {
+resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' existing = {
   name: rgName
-  params: {
-    rgName: rgName
-    location: location
-  }
 }
 
 resource servicesSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
