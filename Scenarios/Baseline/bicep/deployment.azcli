@@ -1,19 +1,16 @@
-cd Scenarios/Baseline/refactory
+cd Scenarios/Baseline/bicep
 
 # AZ CLI
-# 03 Network HUB
-az deployment sub create -n "ESLZ-HUB-AHDS" -l "EastUS" -f 03-Network-Hub/main.bicep -p 03-Network-Hub/parameters-main.json
-az deployment sub create -n "ESLZ-AHDS-HUB-UDR" -l "EastUS" -f 03-Network-Hub/updateUDR.bicep -p 03-Network-Hub/parameters-updateUDR.json
-az deployment sub create -n "ESLZ-HUB-VM" -l "EastUS" -f 03-Network-Hub/deploy-vm.bicep -p 03-Network-Hub/parameters-deploy-vm.json
+# 01-Network-Hub
+az deployment sub create -n "ESLZ-HUB-AHDS" -l "EastUS" -f 01-Network-Hub/main.bicep -p 01-Network-Hub/parameters-main.json
+az deployment sub create -n "ESLZ-AHDS-HUB-UDR" -l "EastUS" -f 01-Network-Hub/updateUDR.bicep -p 01-Network-Hub/parameters-updateUDR.json
+az deployment sub create -n "ESLZ-HUB-VM" -l "EastUS" -f 01-Network-Hub/deploy-vm.bicep -p 01-Network-Hub/parameters-deploy-vm.json
 
-# 04 Network LZ
-az deployment sub create -n "ESLZ-Spoke-AHDS" -l "EastUS" -f 04-Network-LZ/main.bicep -p 04-Network-LZ/parameters-main.json
-# Wait until App Gateway get deployed. It takes a few mins to complete. at least 10 min
-#az deployment sub create -n "ESLZ-AHDS-SPOKE-UDRNSG" -l "EastUS" -f 04-Network-LZ/updateUDR-NSG.bicep -p 04-Network-LZ/parameters-updateUDR-NSG.json
+# 02-Network-LZ
+az deployment sub create -n "ESLZ-Spoke-AHDS" -l "EastUS" -f 02-Network-LZ/main.bicep -p 02-Network-LZ/parameters-main.json
 
-# 05 AHDS Supporting Infrastructure
-# First Execution
-az deployment sub create -n "ESLZ-AHDS-Supporting" -l "EastUS" -f 05-AHDS-supporting/main.bicep -p 05-AHDS-supporting/parameters-main.json
+# 03-AHDS
+az deployment sub create -n "ESLZ-AHDS" -l "EastUS" -f 03-AHDS/main.bicep -p 03-AHDS/parameters-main.json
 
 # Retry Execution
 # Bash CLI
@@ -21,6 +18,7 @@ rg=ESLZ-AHDS-SPOKE
 acrName=$(az deployment sub show -n $rg --query properties.outputs.acrName.value -o tsv)
 keyVaultName=$(az deployment sub show -n $rg --query properties.outputs.keyvaultName.value -o tsv)
 storageName=$(az deployment sub show -n $rg --query properties.outputs.storageName.value -o tsv)
+healthWorkspace=$(az healthcareapis workspace list -g $rg --query "[].name" -o tsv)
 
 # PowerShell
 $rg="ESLZ-AHDS-SPOKE"
@@ -30,70 +28,25 @@ $storageName=$(az storage account list -g $rg --query "[].name" -o tsv)
 $healthWorkspace=$(az healthcareapis workspace list -g $rg --query "[].name" -o tsv)
 
 # No HealthWorkspace
-az deployment sub create -n "ESLZ-AHDS-Supporting" -l "EastUS" -f 05-AHDS-supporting/main.bicep -p 05-AHDS-supporting/parameters-main.json -p acrName=$acrName -p keyvaultName=$keyVaultName -p storageAccountName=$storageName
+az deployment sub create -n "ESLZ-AHDS-Supporting" -l "EastUS" -f 03-AHDS/main.bicep -p 03-AHDS/parameters-main.json -p acrName=$acrName -p keyvaultName=$keyVaultName -p storageAccountName=$storageName
 # With HealthWorkspace
-az deployment sub create -n "ESLZ-AHDS-Supporting" -l "EastUS" -f 05-AHDS-supporting/main.bicep -p 05-AHDS-supporting/parameters-main.json -p acrName=$acrName -p keyvaultName=$keyVaultName -p storageAccountName=$storageName -p workspaceName=$healthWorkspace
+az deployment sub create -n "ESLZ-AHDS-Supporting" -l "EastUS" -f 03-AHDS/main.bicep -p 03-AHDS/parameters-main.json -p acrName=$acrName -p keyvaultName=$keyVaultName -p storageAccountName=$storageName -p workspaceName=$healthWorkspace
 
-#az deployment sub create -n "ESLZ-AHDS-Supporting" -l "EastUS" -f 05-AHDS-supporting/main.bicep -p 05-AHDS-supporting/parameters-main.json -p acrName=eslzacrufwp6iactonsm -p keyvaultName=eslz-kv-ufwp6iactonsm -p storageAccountName=eslzsafxhkqmdttbkgy
-
-# 06 AKS Cluster Deployment
-acrName=$(az deployment sub show -n "ESLZ-AKS-Supporting" --query properties.outputs.acrName.value -o tsv)
-keyVaultName=$(az deployment sub show -n "ESLZ-AKS-Supporting" --query properties.outputs.keyvaultName.value -o tsv)
-
-az deployment sub create -n "ESLZ-AKS-CLUSTER" -l "CentralUS" -f 06-AKS-cluster/main.bicep -p 06-AKS-cluster/parameters-main.json -p acrName=$acrName -p keyvaultName=$keyVaultName -p kubernetesVersion=1.22.6 -p networkPlugin=azure
-
-# Quick Clean
+# Quick Clean - Useful to recreate only the LZ(Spoke) without deleting the HUB
 az deployment sub delete -n ESLZ-Spoke-AHDS --no-wait
 az deployment sub delete -n ESLZ-AHDS-Supporting --no-wait
 az group delete -n ESLZ-AHDS-SPOKE -y
 az network vnet peering delete --resource-group ESLZ-AHDS-HUB --name HUB-to-Spoke --vnet-name VNet-HUB
 az apim deletedservice purge --service-name APIM-AHDS --location EastUS
 
-# Clean Up
-
-az apim deletedservice purge --service-name APIM-AHDS --location EastUS
-az network vnet peering delete --resource-group ESLZ-AHDS-HUB --name HUB-to-Spoke --vnet-name VNet-HUB
-
+# Full Cleanup
 # Delete Resource Groups
 az group delete -n ESLZ-AHDS-HUB -y --no-wait
 az group delete -n ESLZ-AHDS-SPOKE -y --no-wait
+az apim deletedservice purge --service-name APIM-AHDS --location EastUS
 # Delete Deployments
 az deployment sub delete -n ESLZ-HUB-AHDS -y --no-wait
 az deployment sub delete -n ESLZ-AHDS-HUB-UDR --no-wait
 az deployment sub delete -n ESLZ-HUB-VM --no-wait
 az deployment sub delete -n ESLZ-Spoke-AHDS --no-wait
 az deployment sub delete -n ESLZ-AHDS-Supporting --no-wait
-
-## Delete VNetA to VNetB peering. ##
-#az network vnet peering delete --resource-group ESLZ-AHDS-HUB --name HUB-to-Spoke --vnet-name VNet-HUB
-## Delete VNetB to VNetA peering. ##
-#az network vnet peering delete --resource-group myResourceGroup --name VNetBtoVNetA --vnet-name VNetB
-
-# AZ PowerShell
-# 03 Network HUB
-New-AzSubscriptionDeployment -TemplateFile .\03-Network-Hub\main.bicep -TemplateParameterFile .\03-Network-Hub\parameters-main.json -Location "CentralUS" -Name ESLZ-HUB-AKS
-New-AzSubscriptionDeployment -TemplateFile .\03-Network-Hub\updateUDR.bicep -TemplateParameterFile .\03-Network-Hub\parameters-updateUDR.json -Location "CentralUS" -Name ESLZ-AKS-HUB-UDR
-New-AzSubscriptionDeployment -TemplateFile .\03-Network-Hub\deploy-vm.bicep -TemplateParameterFile .\03-Network-Hub\parameters-deploy-vm.json -Location "CentralUS" -Name ESLZ-HUB-VM
-
-# 04 Network LZ
-New-AzSubscriptionDeployment -TemplateFile .\04-Network-LZ\main.bicep -TemplateParameterFile .\04-Network-LZ\parameters-main.json -Location "CentralUS" -Name ESLZ-Spoke-AKS
-New-AzSubscriptionDeployment -TemplateFile .\04-Network-LZ\updateUDR-NSG.bicep -TemplateParameterFile .\04-Network-LZ\parameters-updateUDR-NSG.json -Location "CentralUS" -Name ESLZ-AKS-SPOKE-UDRNSG
-
-# 05 AKS Supporting Infrastructure
-New-AzSubscriptionDeployment -TemplateFile .\05-AKS-supporting\main.bicep -TemplateParameterFile .\05-AKS-supporting\parameters-main.json -Location "CentralUS" -Name ESLZ-AKS-Supporting
-
-# 06 AKS Cluster Deployment
-New-AzSubscriptionDeployment -TemplateFile .\06-AKS-cluster\main.bicep -TemplateParameterFile .\06-AKS-cluster\parameters-main.json -Location "CentralUS" -Name ESLZ-AKS-CLUSTER
-
-# Clean Up
-# Delete Resource Groups
-Remove-AzResourceGroup -Name ESLZ-HUB
-Remove-AzResourceGroup -Name ESLZ-SPOKE
-# Delete Deployments
-Remove-AzSubscriptionDeployment -Name ESLZ-HUB-AKS
-Remove-AzSubscriptionDeployment -Name ESLZ-AKS-HUB-UDR
-Remove-AzSubscriptionDeployment -Name ESLZ-HUB-VM
-Remove-AzSubscriptionDeployment -Name ESLZ-Spoke-AKS
-Remove-AzSubscriptionDeployment -Name ESLZ-AKS-SPOKE-UDRNSG
-Remove-AzSubscriptionDeployment -Name ESLZ-AKS-Supporting
-Remove-AzSubscriptionDeployment -Name ESLZ-AKS-CLUSTER
