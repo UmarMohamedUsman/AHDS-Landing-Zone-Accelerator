@@ -184,7 +184,8 @@ resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
           pickHostNameFromBackendAddress: false
           requestTimeout: 30
           probe: {
-            id: '${resourceId('Microsoft.Network/applicationGateways', appgwname)}/probes/APIM'
+            //id: '${resourceId('Microsoft.Network/applicationGateways', appgwname)}/probes/APIM'
+            id: resourceId('Microsoft.Network/applicationGateways', appgwname, 'probes', 'APIM')
           }
         }
       }
@@ -216,7 +217,7 @@ resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
           sslCertificate: {
             id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', appgwname, appGatewayFQDN)
           }
-          hostnames: []
+          hostNames: []
           requireServerNameIndication: false
         }
       }
