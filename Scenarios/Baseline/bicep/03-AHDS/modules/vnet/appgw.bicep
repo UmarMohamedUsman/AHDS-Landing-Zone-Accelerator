@@ -185,7 +185,7 @@ resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
           requestTimeout: 30
           probe: {
             //id: '${resourceId('Microsoft.Network/applicationGateways', appgwname)}/probes/APIM'
-            id: resourceId('Microsoft.Network/applicationGateways', appgwname, 'probes', 'APIM')
+            id: resourceId('Microsoft.Network/applicationGateways/probes', appgwname, 'APIM')
           }
         }
       }

@@ -7,25 +7,27 @@ az deployment sub create -n "ESLZ-AHDS-HUB-UDR" -l "EastUS" -f 01-Network-Hub/up
 az deployment sub create -n "ESLZ-HUB-VM" -l "EastUS" -f 01-Network-Hub/deploy-vm.bicep -p 01-Network-Hub/parameters-deploy-vm.json
 
 # 02-Network-LZ
-az deployment sub create -n "ESLZ-Spoke-AHDS" -l "EastUS" -f 02-Network-LZ/main.bicep -p 02-Network-LZ/parameters-main.json
+# Bash
+rgSpoke=ESLZ-AHDS-SPOKE
+# Powershell
+$rgSpoke="ESLZ-AHDS-SPOKE"
+az deployment sub create -n "ESLZ-Spoke-AHDS" -l "EastUS" -f 02-Network-LZ/main.bicep -p 02-Network-LZ/parameters-main.json -p rgName=$rgSpoke
 
 # 03-AHDS
-az deployment sub create -n "ESLZ-AHDS" -l "EastUS" -f 03-AHDS/main.bicep -p 03-AHDS/parameters-main.json
+az deployment sub create -n "ESLZ-AHDS" -l "EastUS" -f 03-AHDS/main.bicep -p 03-AHDS/parameters-main.json -p rgName=$rgSpoke
 
 # Retry Execution
 # Bash CLI
-rg=ESLZ-AHDS-SPOKE
-acrName=$(az deployment sub show -n $rg --query properties.outputs.acrName.value -o tsv)
-keyVaultName=$(az deployment sub show -n $rg --query properties.outputs.keyvaultName.value -o tsv)
-storageName=$(az deployment sub show -n $rg --query properties.outputs.storageName.value -o tsv)
-healthWorkspace=$(az healthcareapis workspace list -g $rg --query "[].name" -o tsv)
+acrName=$(az deployment sub show -n $rgSpoke --query properties.outputs.acrName.value -o tsv)
+keyVaultName=$(az deployment sub show -n $rgSpoke --query properties.outputs.keyvaultName.value -o tsv)
+storageName=$(az deployment sub show -n $rgSpoke --query properties.outputs.storageName.value -o tsv)
+healthWorkspace=$(az healthcareapis workspace list -g $rgSpoke --query "[].name" -o tsv)
 
 # PowerShell
-$rg="ESLZ-AHDS-SPOKE"
-$acrName=$(az acr list -g $rg --query "[].name" -o tsv)
-$keyVaultName=$(az keyvault list -g $rg --query "[].name" -o tsv)
-$storageName=$(az storage account list -g $rg --query "[].name" -o tsv)
-$healthWorkspace=$(az healthcareapis workspace list -g $rg --query "[].name" -o tsv)
+$acrName=$(az acr list -g $rgSpoke --query "[].name" -o tsv)
+$keyVaultName=$(az keyvault list -g $rgSpoke --query "[].name" -o tsv)
+$storageName=$(az storage account list -g $rgSpoke --query "[].name" -o tsv)
+$healthWorkspace=$(az healthcareapis workspace list -g $rgSpoke --query "[].name" -o tsv)
 
 # No HealthWorkspace
 az deployment sub create -n "ESLZ-AHDS-Supporting" -l "EastUS" -f 03-AHDS/main.bicep -p 03-AHDS/parameters-main.json -p acrName=$acrName -p keyvaultName=$keyVaultName -p storageAccountName=$storageName
@@ -35,9 +37,9 @@ az deployment sub create -n "ESLZ-AHDS-Supporting" -l "EastUS" -f 03-AHDS/main.b
 # Quick Clean - Useful to recreate only the LZ(Spoke) without deleting the HUB
 az deployment sub delete -n ESLZ-Spoke-AHDS --no-wait
 az deployment sub delete -n ESLZ-AHDS-Supporting --no-wait
-az group delete -n ESLZ-AHDS-SPOKE -y
+az group delete -n $rgSpoke -y
 az network vnet peering delete --resource-group ESLZ-AHDS-HUB --name HUB-to-Spoke --vnet-name VNet-HUB
-az apim deletedservice purge --service-name APIM-AHDS --location EastUS
+az apim deletedservice purge --service-name APIM-AHDS-vws --location EastUS
 
 # Full Cleanup
 # Delete Resource Groups
