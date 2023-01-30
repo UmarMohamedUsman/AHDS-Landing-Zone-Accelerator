@@ -1,5 +1,5 @@
 targetScope = 'subscription'
-
+// Parameters
 param rgHubName string
 param resourceSuffix string
 param rgName string
@@ -46,37 +46,43 @@ param workspaceName string = 'eslzwks${uniqueString('workspacevws', utcNow('u'))
 param functionAppName string
 param ApiUrlPath string
 
+// Variables
 //var acrName = 'eslzacr${uniqueString(rgName, deployment().name)}'
 //var keyvaultName = 'eslz-kv-${uniqueString(rgName, deployment().name)}'
 var audience = 'https://${workspaceName}-${fhirName}.fhir.azurehealthcareapis.com'
 var functionContentShareName = 'function'
 
+// Defining Log Analitics Workspace
 //logAnalyticsWorkspace
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06-01' existing = {
   scope: resourceGroup(rgHubName)
   name: 'log-${resourceSuffix}'
 }
 
-//appInsights
+// Defining appInsights
 resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   scope: resourceGroup(rgHubName)
   name: 'appi-${resourceSuffix}'
 }
 
+// Defining Resource Groupt
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' existing = {
   name: rgName
 }
 
+// Defining Private Endpoint Subnet
 resource servicesSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
   scope: resourceGroup(rg.name)
   name: '${vnetName}/${subnetName}'
 }
 
+// Defining Integration Subnet
 resource VNetIntegrationSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
   scope: resourceGroup(rg.name)
   name: '${vnetName}/${VNetIntegrationSubnetName}'
 }
 
+// Creating Container Registry
 module acr 'modules/acr/acr.bicep' = {
   scope: resourceGroup(rg.name)
   name: acrName
@@ -88,6 +94,7 @@ module acr 'modules/acr/acr.bicep' = {
   }
 }
 
+// Creating Private Endpoint for ACR
 module privateEndpointAcr 'modules/vnet/privateendpoint.bicep' = {
   scope: resourceGroup(rg.name)
   name: acrPrivateEndpointName
@@ -103,11 +110,13 @@ module privateEndpointAcr 'modules/vnet/privateendpoint.bicep' = {
   }
 }
 
+// Defining Private DNS Zone for ACR
 resource privateDNSZoneACR 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: resourceGroup(rg.name)
   name: privateDNSZoneACRName
 }
 
+// Creating Private DNS Zone settings for ACR Private Endpoint
 module privateEndpointACRDNSSetting 'modules/vnet/privatedns.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'acr-pvtep-dns'
@@ -116,6 +125,8 @@ module privateEndpointACRDNSSetting 'modules/vnet/privatedns.bicep' = {
     privateEndpointName: privateEndpointAcr.name
   }
 }
+
+// Creating Key Vault
 module keyvault 'modules/keyvault/keyvault.bicep' = {
   scope: resourceGroup(rg.name)
   name: keyvaultName
@@ -129,6 +140,7 @@ module keyvault 'modules/keyvault/keyvault.bicep' = {
   }
 }
 
+// Creating Private Endpoint Key Vault
 module privateEndpointKeyVault 'modules/vnet/privateendpoint.bicep' = {
   scope: resourceGroup(rg.name)
   name: keyVaultPrivateEndpointName
@@ -144,11 +156,13 @@ module privateEndpointKeyVault 'modules/vnet/privateendpoint.bicep' = {
   }
 }
 
+// Defining Key Vault Private DNS Zone
 resource privateDNSZoneKV 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: resourceGroup(rg.name)
   name: privateDNSZoneKVName
 }
 
+// Creating Key Vault Private DNS Settings for Private DNS Zone
 module privateEndpointKVDNSSetting 'modules/vnet/privatedns.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'kv-pvtep-dns'
@@ -158,6 +172,7 @@ module privateEndpointKVDNSSetting 'modules/vnet/privatedns.bicep' = {
   }
 }
 
+// Creating Storage Account for FIHRs, Functions, App Services in general
 module storage 'modules/storage/storage.bicep' = {
   scope: resourceGroup(rg.name)
   name: storageAccountName
@@ -169,6 +184,7 @@ module storage 'modules/storage/storage.bicep' = {
   }
 }
 
+// Creating Private Endpoint for Storage Account Blob
 module privateEndpointSA 'modules/vnet/privateendpoint.bicep' = {
   scope: resourceGroup(rg.name)
   name: saPrivateEndpointName
@@ -184,11 +200,13 @@ module privateEndpointSA 'modules/vnet/privateendpoint.bicep' = {
   }
 }
 
+// Defining Storage Account Private DNS Zone Blob
 resource privateDNSZoneSA 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: resourceGroup(rg.name)
   name: privateDNSZoneSAName
 }
 
+// Creating Private Endpoint Storage Account Blob
 module privateEndpointSADNSSetting 'modules/vnet/privatedns.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'sa-pvtep-dns'
@@ -198,6 +216,7 @@ module privateEndpointSADNSSetting 'modules/vnet/privatedns.bicep' = {
   }
 }
 
+// Creating Private Endpoint for Storage Account File
 module privateEndpointSAfile 'modules/vnet/privateendpoint.bicep' = {
   scope: resourceGroup(rg.name)
   name: '${saPrivateEndpointName}-file'
@@ -213,11 +232,13 @@ module privateEndpointSAfile 'modules/vnet/privateendpoint.bicep' = {
   }
 }
 
+// Defining Storage Account Private DNS Zone File
 resource privateDNSZoneSAfile 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: resourceGroup(rg.name)
   name: privateDNSZoneSAfileName
 }
 
+// Creating Private Endpoint DNS Settings for Storage Account File
 module privateEndpointSAfileDNSSetting 'modules/vnet/privatedns.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'sa-file-pvtep-dns'
@@ -227,6 +248,7 @@ module privateEndpointSAfileDNSSetting 'modules/vnet/privatedns.bicep' = {
   }
 }
 
+// Creating Private Endpoint for Storage Account Table
 module privateEndpointSAtable 'modules/vnet/privateendpoint.bicep' = {
   scope: resourceGroup(rg.name)
   name: '${saPrivateEndpointName}-table'
@@ -242,11 +264,13 @@ module privateEndpointSAtable 'modules/vnet/privateendpoint.bicep' = {
   }
 }
 
+// Defining Storage Account Private DNS Zone Table
 resource privateDNSZoneSAtable 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: resourceGroup(rg.name)
   name: privateDNSZoneSAfileName
 }
 
+// Creating Private Endpoint DNS Settings for Storage Account Table
 module privateEndpointSAtableDNSSetting 'modules/vnet/privatedns.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'sa-table-pvtep-dns'
@@ -256,6 +280,7 @@ module privateEndpointSAtableDNSSetting 'modules/vnet/privatedns.bicep' = {
   }
 }
 
+// Creating Private Endpoint for Storage Account Queue
 module privateEndpointSAqueue 'modules/vnet/privateendpoint.bicep' = {
   scope: resourceGroup(rg.name)
   name: '${saPrivateEndpointName}-queue'
@@ -271,11 +296,13 @@ module privateEndpointSAqueue 'modules/vnet/privateendpoint.bicep' = {
   }
 }
 
+// Defining Storage Account Private DNS Zone Queue
 resource privateDNSZoneSAqueue 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: resourceGroup(rg.name)
   name: privateDNSZoneSAfileName
 }
 
+// Creating Private Endpoint DNS Settings for Storage Account Queue
 module privateEndpointSAqueueDNSSetting 'modules/vnet/privatedns.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'sa-queue-pvtep-dns'
@@ -286,12 +313,13 @@ module privateEndpointSAqueueDNSSetting 'modules/vnet/privatedns.bicep' = {
 }
 
 // APIM
-
+// Defining APIM Subnet
 resource APIMSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
   scope: resourceGroup(rg.name)
   name: '${vnetName}/${APIMsubnetName}'
 }
 
+// Creating APIM
 module apimModule 'modules/apim/apim.bicep' = {
   name: 'apimDeploy'
   scope: resourceGroup(rg.name)
@@ -306,6 +334,7 @@ module apimModule 'modules/apim/apim.bicep' = {
   }
 }
 
+// Adding APIM DNS Records
 module apimDNSRecords 'modules/vnet/apimprivatednsrecords.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'apimDNSRecords'
@@ -316,7 +345,7 @@ module apimDNSRecords 'modules/vnet/apimprivatednsrecords.bicep' = {
 }
 
 // AppGW
-
+// Create Public IP for Application Gateway
 module publicipappgw 'modules/vnet/publicip.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'APPGW-PIP'
@@ -335,11 +364,13 @@ module publicipappgw 'modules/vnet/publicip.bicep' = {
   }
 }
 
+// Defining Application Gateway Subnet
 resource appgwSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
   scope: resourceGroup(rg.name)
   name: '${vnetName}/${appGatewaySubnetName}'
 }
 
+// Creating Application Gateway Identity (used for AppGW access Key Vault to load Certificate)
 module appgwIdentity 'modules/Identity/userassigned.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'appgwIdentity'
@@ -349,6 +380,7 @@ module appgwIdentity 'modules/Identity/userassigned.bicep' = {
   }
 }
 
+// Giving Access to Key Vault for Application Gateway Identity to read Keys, Secrets, Certificates
 module kvrole 'modules/Identity/kvrole.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'kvrole'
@@ -359,6 +391,7 @@ module kvrole 'modules/Identity/kvrole.bicep' = {
   }
 }
 
+// Generating/Loading certificate to Azure Key Vault (Depending in the parameters it can load or generete a new Self-Signed certificate)
 module certificate 'modules/vnet/certificate.bicep' = {
   name: 'certificate'
   scope: resourceGroup(rg.name)
@@ -375,6 +408,7 @@ module certificate 'modules/vnet/certificate.bicep' = {
   ]
 }
 
+// Creating Application Gateway (This resource will only be created after APIM API Import finishes)
 module appgw 'modules/vnet/appgw.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'appgw'
@@ -397,7 +431,7 @@ module appgw 'modules/vnet/appgw.bicep' = {
 }
 
 // Create FHIR service
-
+// Giving Access to AppGW Identity to APIM, since we are re-using the same MI to load the APIM FHIR API at APIM
 module apimrole 'modules/Identity/apimrole.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'apimrole'
@@ -408,6 +442,7 @@ module apimrole 'modules/Identity/apimrole.bicep' = {
   }
 }
 
+// Creating FHIR Service
 module fhir 'modules/ahds/fhirservice.bicep' = {
   scope: resourceGroup(rg.name)
   name: fhirName
@@ -419,6 +454,7 @@ module fhir 'modules/ahds/fhirservice.bicep' = {
   }
 }
 
+// Creating FHIR Private Endpoint
 module privateEndpointFHIR 'modules/vnet/privateendpoint.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'fhir-pvtep'
@@ -434,11 +470,13 @@ module privateEndpointFHIR 'modules/vnet/privateendpoint.bicep' = {
   }
 }
 
+// Defining FHIR Private DNS Zone for FHIR
 resource privateDNSZoneFHIR 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: resourceGroup(rg.name)
   name: privateDNSZoneFHIRName
 }
 
+// Creating Private DNS Setting for FHIR Private DNS Settings
 module privateEndpointFHIRDNSSetting 'modules/vnet/privatedns.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'fhir-pvtep-dns'
@@ -449,6 +487,7 @@ module privateEndpointFHIRDNSSetting 'modules/vnet/privatedns.bicep' = {
 }
 
 // Hosting plan App Service
+// Creating App Service Plan
 module hostingPlan 'modules/function/hostingplan.bicep' = {
   scope: resourceGroup(rg.name)
   name: hostingPlanName
@@ -459,7 +498,7 @@ module hostingPlan 'modules/function/hostingplan.bicep' = {
   }
 }
 
-// Storage Container
+// Creating Storage Container
 module container 'modules/Storage/container.bicep' = [for name in containerNames: {
   scope: resourceGroup(rg.name)
   name: '${name}'
@@ -469,7 +508,7 @@ module container 'modules/Storage/container.bicep' = [for name in containerNames
   }
 }]
 
-// Storage file share
+// Creating Storage file share
 module functioncontentfileshare 'modules/Storage/fileshare.bicep' = {
   scope: resourceGroup(rg.name)
   name: functionContentShareName
@@ -479,7 +518,7 @@ module functioncontentfileshare 'modules/Storage/fileshare.bicep' = {
   }
 }
 
-// KeyVault Secret FS-URL
+// Creating KeyVault Secret FS-URL
 module fsurlkvsecret 'modules/keyvault/kvsecrets.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'fsurl'
@@ -490,7 +529,7 @@ module fsurlkvsecret 'modules/keyvault/kvsecrets.bicep' = {
   }
 }
 
-// KeyVault Secret FS-TENANT-NAME
+// Creating KeyVault Secret FS-TENANT-NAME
 module tenantkvsecret 'modules/keyvault/kvsecrets.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'fstenant'
@@ -501,7 +540,7 @@ module tenantkvsecret 'modules/keyvault/kvsecrets.bicep' = {
   }
 }
 
-// KeyVault Secret FS-RESOURCE
+// Creating KeyVault Secret FS-RESOURCE
 module fsreskvsecret 'modules/keyvault/kvsecrets.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'fsresource'
@@ -512,7 +551,7 @@ module fsreskvsecret 'modules/keyvault/kvsecrets.bicep' = {
   }
 }
 
-// KeyVault Secret FS-STORAGEACCT
+// Creating KeyVault Secret FS-STORAGEACCT
 module sakvsecret 'modules/keyvault/kvsecrets.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'fsstorage'
@@ -523,7 +562,7 @@ module sakvsecret 'modules/keyvault/kvsecrets.bicep' = {
   }
 }
 
-// user assigned fhirloaderid
+// Creating user assigned for fhirloaderid
 module fnIdentity 'modules/Identity/userassigned.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'fnIdentity'
@@ -533,7 +572,7 @@ module fnIdentity 'modules/Identity/userassigned.bicep' = {
   }
 }
 
-// KeyVault Access fhirloaderid
+// Giving access to KeyVault Access for fhirloaderid
 module kvaccess 'modules/keyvault/keyvaultaccess.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'kvaultAccess'
@@ -543,7 +582,7 @@ module kvaccess 'modules/keyvault/keyvaultaccess.bicep' = {
   }
 }
 
-// KeyVault RBAC fnvaultrole
+// Giving access to KeyVault Access for fhirloaderid
 module fnvaultRole 'modules/Identity/kvaccess.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'fnvaultRole'
@@ -553,6 +592,7 @@ module fnvaultRole 'modules/Identity/kvaccess.bicep' = {
   }
 }
 
+// Importing FHIR at APIM (This is using deployment script, it will load the Swagger API definition from GitHub)
 module apimImportAPI 'modules/apim/api-deploymentScript.bicep' = {
   name: 'apimImportAPI'
   scope: resourceGroup(rg.name)
@@ -572,6 +612,7 @@ module apimImportAPI 'modules/apim/api-deploymentScript.bicep' = {
 }
 
 // FunctionApp
+// Creating Function App
 module functionApp 'modules/function/functionapp.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'functionApp'
@@ -598,7 +639,7 @@ module functionApp 'modules/function/functionapp.bicep' = {
   ]
 }
 
-// FunctionApp PE
+// Creating Function App Private Endpoint
 module privateEndpointFunctionApp 'modules/vnet/privateendpoint.bicep' = {
   scope: resourceGroup(rg.name)
   name: functionAppPrivateEndpointName
@@ -614,11 +655,13 @@ module privateEndpointFunctionApp 'modules/vnet/privateendpoint.bicep' = {
   }
 }
 
+// Defining Private DNS Zone for Function App
 resource privateDNSZoneFunctionApp 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: resourceGroup(rg.name)
   name: privateDNSZoneFunctionAppName
 }
 
+// Creating Function App Private endpoint DNS Settings
 module privateEndpointFunctionAppDNSSetting 'modules/vnet/privatedns.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'functionApp-pvtep-dns'
@@ -628,12 +671,7 @@ module privateEndpointFunctionAppDNSSetting 'modules/vnet/privatedns.bicep' = {
   }
 }
 
+// Outputs
 output acrName string = acr.name
 output keyvaultName string = keyvault.name
 output storageName string = storage.name
-
-// To do List
-/*
-Route Table need to be created for VNetIntegration Subnet, APIM, FIHRs
-need attention - Invalid SelfSigned Certificate - After just setting it again, it worked just fine in AppGW
-*/
