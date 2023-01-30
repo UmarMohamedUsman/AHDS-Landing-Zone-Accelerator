@@ -1,3 +1,4 @@
+// Parameters
 param nsgName string
 param securityRules array = []
 param location string = resourceGroup().location
@@ -9,7 +10,7 @@ param location string = resourceGroup().location
 param diagnosticLogsRetentionInDays int = 365
 
 @description('Optional. Resource ID of the diagnostic log analytics workspace.')
-param diagnosticWorkspaceId string 
+param diagnosticWorkspaceId string
 
 @description('Optional. The name of logs that will be streamed. "allLogs" includes all possible logs for the resource.')
 @allowed([
@@ -24,6 +25,7 @@ param diagnosticLogCategoriesToEnable array = [
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = '${nsgName}-diagnosticSettings-001'
 
+// Variables
 var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
   category: category
   enabled: true
@@ -44,6 +46,7 @@ var diagnosticsLogs = contains(diagnosticLogCategoriesToEnable, 'allLogs') ? [
   }
 ] : diagnosticsLogsSpecified
 
+// Creating NSG
 resource nsg 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
   name: nsgName
   location: location
@@ -52,6 +55,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
   }
 }
 
+// Defining NSG diagnostic settings
 resource networkSecurityGroup_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' =  {
   name: diagnosticSettingsName
   properties: {

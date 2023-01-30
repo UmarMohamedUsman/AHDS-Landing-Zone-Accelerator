@@ -11,6 +11,7 @@ function Log($Message){
     Write-Output (([System.DateTime]::Now).ToString() + " " + $Message)
 }
 
+# Function to add a path to the system path
 function Add-SystemPaths([array] $PathsToAdd) {
     $VerifiedPathsToAdd = ""
     foreach ($Path in $PathsToAdd) {

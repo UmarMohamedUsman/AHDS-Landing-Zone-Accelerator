@@ -1,3 +1,4 @@
+// Parameters
 param subnetId string
 param location string = resourceGroup().location
 
@@ -20,6 +21,7 @@ param diagnosticMetricsToEnable array = [
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = 'jbnic-diagnosticSettings-001'
 
+// Variables
 var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
   category: metric
   timeGrain: null
@@ -30,6 +32,7 @@ var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
   }
 }]
 
+// Creating NIC
 resource jbnic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
   name: 'jbnic'
   location: location
@@ -48,6 +51,7 @@ resource jbnic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
   }
 }
 
+// Defining Diagnostic Settings NIC
 resource networkInterface_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: diagnosticSettingsName
   properties: {
@@ -57,5 +61,6 @@ resource networkInterface_diagnosticSettings 'Microsoft.Insights/diagnosticSetti
   scope: jbnic
 }
 
+// Outputs
 output nicName string = jbnic.name
 output nicId string = jbnic.id
