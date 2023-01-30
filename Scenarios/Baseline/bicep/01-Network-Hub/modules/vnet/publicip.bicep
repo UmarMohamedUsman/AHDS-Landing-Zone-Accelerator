@@ -1,3 +1,4 @@
+// Parameters
 param publicipName string
 param publicipsku object
 param publicipproperties object
@@ -33,6 +34,7 @@ param diagnosticMetricsToEnable array = [
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = '${publicipName}-diagnosticSettings-001'
 
+// Variables
 var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
   category: category
   enabled: true
@@ -63,6 +65,7 @@ var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
   }
 }]
 
+// Creating Public IP
 resource publicip 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
   name: publicipName
   location: location
@@ -71,6 +74,7 @@ resource publicip 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
   zones: !empty(availabilityZones) ? availabilityZones : null
 }
 
+// Enabliging diagnostic logs
 resource publicIpAddress_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: diagnosticSettingsName
   properties: {
@@ -81,4 +85,5 @@ resource publicIpAddress_diagnosticSettings 'Microsoft.Insights/diagnosticSettin
   scope: publicip
 }
 
+// Output
 output publicipId string = publicip.id

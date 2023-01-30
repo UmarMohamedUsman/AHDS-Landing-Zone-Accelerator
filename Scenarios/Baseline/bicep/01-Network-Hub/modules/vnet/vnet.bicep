@@ -1,3 +1,4 @@
+// Parameters
 param vnetAddressSpace object = {
   addressPrefixes: [
     '10.0.0.0/16'
@@ -35,6 +36,7 @@ param diagnosticMetricsToEnable array = [
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = '${vnetName}-diagnosticSettings-001'
 
+// Variables
 var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
   category: category
   enabled: true
@@ -65,6 +67,7 @@ var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
   }
 }]
 
+// Criating Virtual Network
 resource vnet 'Microsoft.Network/virtualNetworks@2021-02-01' = {
   name: vnetName
   location: location
@@ -74,6 +77,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-02-01' = {
   }
 }
 
+// Defining Diagnostic Settings for Virtual Network
 resource virtualNetwork_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: diagnosticSettingsName
   properties: {
@@ -84,6 +88,7 @@ resource virtualNetwork_diagnosticSettings 'Microsoft.Insights/diagnosticSetting
   scope: vnet
 }
 
+// Outputs
 output vnetId string = vnet.id
 output vnetName string = vnet.name
 output vnetSubnets array = vnet.properties.subnets

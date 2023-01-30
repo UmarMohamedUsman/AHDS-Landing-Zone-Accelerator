@@ -1,3 +1,4 @@
+// Parameters
 param nameSufix string
 
 @maxLength(24)
@@ -44,6 +45,7 @@ param storageAccountAccessTier string = 'Hot'
 @description('Optional. Set the minimum TLS version on request to storage.')
 param minimumTlsVersion string = 'TLS1_2'
 
+// Create the storage account
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' = {
   name: stacctname
   location: location
@@ -57,6 +59,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' = {
   }
 }
 
+// Outputs
 @description('The name of the deployed storage account.')
 output name string = storageAccount.name
 

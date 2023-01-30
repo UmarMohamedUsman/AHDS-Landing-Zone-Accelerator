@@ -1,3 +1,4 @@
+// Parameters
 param fwname string
 param fwipConfigurations array
 param fwapplicationRuleCollections array
@@ -35,6 +36,7 @@ param diagnosticMetricsToEnable array = [
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = '${fwname}-diagnosticSettings-001'
 
+// Variables
 var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
   category: category
   enabled: true
@@ -65,6 +67,7 @@ var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
   }
 }]
 
+// Creating the Azure Firewall
 resource firewall 'Microsoft.Network/azureFirewalls@2021-02-01' = {
   name: fwname
   location: location
@@ -80,6 +83,7 @@ resource firewall 'Microsoft.Network/azureFirewalls@2021-02-01' = {
   }
 }
 
+// Defining Azure Firewall Diagnostic Settings
 resource azureFirewall_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: diagnosticSettingsName
   properties: {
@@ -90,5 +94,6 @@ resource azureFirewall_diagnosticSettings 'Microsoft.Insights/diagnosticSettings
   scope: firewall
 }
 
+// Outputs
 output fwPrivateIP string = firewall.properties.ipConfigurations[0].properties.privateIPAddress
 output fwName string = firewall.name

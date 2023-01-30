@@ -441,5 +441,3 @@ module appgwroutetable 'modules/vnet/routetable.bicep' = {
     rtName: rtAppGWSubnetName
   }
 }
-
-// Need to setup the AppGW to publish APIM

@@ -1,3 +1,4 @@
+// Parameters
 param subnetId string
 param vmSize string
 param location string = resourceGroup().location
@@ -7,6 +8,7 @@ param diagnosticWorkspaceId string
 @secure()
 param secrets object
 
+// Creating Key voult to save temporary username and password for VM
 module keyvault '../keyvault/keyvault.bicep' = {
   name: 'keyvault-VM'
   params: {
@@ -17,6 +19,7 @@ module keyvault '../keyvault/keyvault.bicep' = {
   }
 }
 
+// Criating NIC
 module jbnic '../vnet/nic.bicep' = {
   name: 'jbnic'
   params: {
@@ -26,6 +29,7 @@ module jbnic '../vnet/nic.bicep' = {
   }
 }
 
+// Creating Storage Account
 module staccount '../storageaccount/storageaccount.bicep' = {
   name: 'sa-VM'
   params: {
@@ -34,6 +38,7 @@ module staccount '../storageaccount/storageaccount.bicep' = {
   }
 }
 
+// Criating VM jumpbox
 resource jumpbox 'Microsoft.Compute/virtualMachines@2021-03-01' = {
   name: 'jumpbox'
   location: location

@@ -14,6 +14,7 @@ param location string = deployment().location
 param availabilityZones array
 param resourceSuffix string
 
+// Creating Hub Resource Group
 module rg 'modules/resource-group/rg.bicep' = {
   name: rgHubName
   params: {
@@ -22,6 +23,7 @@ module rg 'modules/resource-group/rg.bicep' = {
   }
 }
 
+// Creating Log Analytics Workspace
 module monitor 'modules/azmon/azmon.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'azmon'
@@ -34,6 +36,7 @@ module monitor 'modules/azmon/azmon.bicep' = {
   ]
 }
 
+// Creating Hub VNET
 module vnethub 'modules/vnet/vnet.bicep' = {
   scope: resourceGroup(rg.name)
   name: vnetHubName
@@ -51,6 +54,7 @@ module vnethub 'modules/vnet/vnet.bicep' = {
   ]
 }
 
+// Creating Azure Firewall public IP
 module publicipfw 'modules/vnet/publicip.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'AZFW-PIP'
@@ -69,11 +73,13 @@ module publicipfw 'modules/vnet/publicip.bicep' = {
   }
 }
 
+// Defining Azure Firewall Subnet
 resource subnetfw 'Microsoft.Network/virtualNetworks/subnets@2020-11-01' existing = {
   scope: resourceGroup(rg.name)
   name: '${vnethub.name}/AzureFirewallSubnet'
 }
 
+// Creating Azure Firewall
 module azfirewall 'modules/vnet/firewall.bicep' = {
   scope: resourceGroup(rg.name)
   name: azfwName
@@ -101,6 +107,7 @@ module azfirewall 'modules/vnet/firewall.bicep' = {
   }
 }
 
+// Create Public IP for Bastion
 module publicipbastion 'modules/VM/publicip.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'publicipbastion'
@@ -118,11 +125,13 @@ module publicipbastion 'modules/VM/publicip.bicep' = {
   }
 }
 
+// Defining Bastion Subnet
 resource subnetbastion 'Microsoft.Network/virtualNetworks/subnets@2020-11-01' existing = {
   scope: resourceGroup(rg.name)
   name: '${vnethub.name}/AzureBastionSubnet'
 }
 
+// Creating Bastion
 module bastion 'modules/VM/bastion.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'bastion'
@@ -134,6 +143,7 @@ module bastion 'modules/VM/bastion.bicep' = {
   }
 }
 
+// Creating VM Subnet Route Table
 module routetable 'modules/vnet/routetable.bicep' = {
   scope: resourceGroup(rg.name)
   name: rtVMSubnetName
@@ -143,6 +153,7 @@ module routetable 'modules/vnet/routetable.bicep' = {
   }
 }
 
+// Creating Route Table Routes
 module routetableroutes 'modules/vnet/routetableroutes.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'vm-to-internet'

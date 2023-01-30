@@ -1,3 +1,4 @@
+// Parameters
 param bastionpipId string
 param subnetId string
 param location string = resourceGroup().location
@@ -21,6 +22,7 @@ param diagnosticLogCategoriesToEnable array = [
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = 'bastion-diagnosticSettings-001'
 
+// Variables
 var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
   category: category
   enabled: true
@@ -41,6 +43,7 @@ var diagnosticsLogs = contains(diagnosticLogCategoriesToEnable, 'allLogs') ? [
   }
 ] : diagnosticsLogsSpecified
 
+// Creating Bastion Host
 resource bastion 'Microsoft.Network/bastionHosts@2021-02-01' = {
   name: 'bastion'
   location: location
@@ -61,6 +64,7 @@ resource bastion 'Microsoft.Network/bastionHosts@2021-02-01' = {
   }
 }
 
+// Defining Bastion Host diagnostic settings
 resource azureBastion_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: diagnosticSettingsName
   properties: {

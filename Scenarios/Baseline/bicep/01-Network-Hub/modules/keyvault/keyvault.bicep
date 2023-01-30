@@ -1,3 +1,4 @@
+// Parameters
 param nameSufix string
 param location string = resourceGroup().location
 param name string = '${nameSufix}${uniqueString('keyvault-VM', utcNow('u'))}'
@@ -34,9 +35,7 @@ param diagnosticMetricsToEnable array = [
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = '${name}-diagnosticSettings-001'
 
-// =========== //
-// Variables   //
-// =========== //
+// Variables
 var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
   category: category
   enabled: true
@@ -67,8 +66,7 @@ var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
   }
 }]
 
-//var secretList = !empty(secrets) ? secrets.secureList : {}
-
+// Creating the Key Vault
 resource keyvault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: name
   location: location
@@ -88,6 +86,7 @@ resource keyvault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   }
 }
 
+// Creating the secrets
 resource secretuser 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   name: secrets.user.name
   parent: keyvault
@@ -96,6 +95,7 @@ resource secretuser 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   }
 }
 
+// Creating the secrets
 resource secretpassword 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   name: secrets.password.name
   parent: keyvault
@@ -104,6 +104,7 @@ resource secretpassword 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   }
 }
 
+// Defining key vault diagnostic settings
 resource keyVault_diagnosticSettings 'Microsoft.Insights/diagnosticsettings@2021-05-01-preview' = {
   name: diagnosticSettingsName
   properties: {

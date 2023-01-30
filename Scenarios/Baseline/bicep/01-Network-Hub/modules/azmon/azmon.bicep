@@ -11,6 +11,7 @@ var appInsightsName = 'appi-${resourceSuffix}'
 var logAnalyticsWorkspaceName = 'log-${resourceSuffix}'
 
 // Resources
+// Creating a Log Analytics Workspace
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
   name: logAnalyticsWorkspaceName
   location: location
@@ -25,6 +26,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06
   })
 }
 
+// Creating an Application Insights resource
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: appInsightsName
   location: location
@@ -35,6 +37,7 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
+// Outputs
 output appInsightsConnectionString string = appInsights.properties.ConnectionString
 output appInsightsName string = appInsights.name
 output appInsightsId string = appInsights.id
