@@ -1,3 +1,4 @@
+// Parameters
 param acrName string
 param acrSkuName string
 param location string = resourceGroup().location
@@ -31,6 +32,7 @@ param diagnosticWorkspaceId string
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = '${acrName}-diagnosticSettings-001'
 
+// Environment Variables
 var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
   category: category
   enabled: true
@@ -61,6 +63,7 @@ var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
   }
 }]
 
+// Creating Azure container Registry
 resource acr 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
   name: acrName
   location: location
@@ -73,6 +76,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
   }
 }
 
+// Defining Azure container Registry diagnostic settings
 resource registry_diagnosticSettingName 'Microsoft.Insights/diagnosticsettings@2021-05-01-preview' = {
   name: diagnosticSettingsName
   properties: {
@@ -83,4 +87,5 @@ resource registry_diagnosticSettingName 'Microsoft.Insights/diagnosticsettings@2
   scope: acr
 }
 
+// Outputs
 output acrid string = acr.id

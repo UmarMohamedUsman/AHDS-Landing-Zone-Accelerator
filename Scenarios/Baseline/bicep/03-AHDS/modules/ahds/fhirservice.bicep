@@ -1,7 +1,7 @@
+// Parameters
 param fhirName string
 param workspaceName string
 param location string = resourceGroup().location
-
 
 @description('Optional. Specifies the number of days that logs will be kept for; a value of 0 will retain data indefinitely.')
 @minValue(0)
@@ -31,9 +31,7 @@ param diagnosticMetricsToEnable array = [
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = '${fhirName}-diagnosticSettings-001'
 
-// =========== //
-// Variables   //
-// =========== //
+// Variables
 var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
   category: category
   enabled: true
@@ -71,7 +69,7 @@ var authority = '${loginURL}${tenantId}'
 var audience = 'https://${workspaceName}-${fhirName}.fhir.azurehealthcareapis.com'
 var serviceHost = '${workspaceName}-${fhirName}.fhir.azurehealthcareapis.com'
 
-
+// Creating FHIR Workspace
 resource Workspace 'Microsoft.HealthcareApis/workspaces@2022-06-01' = {
   name: workspaceName
   location: location
@@ -79,12 +77,8 @@ resource Workspace 'Microsoft.HealthcareApis/workspaces@2022-06-01' = {
     publicNetworkAccess: 'Disabled'
   }
 }
-/*
-resource exampleExistingWorkspace 'Microsoft.HealthcareApis/workspaces@2021-06-01-preview' existing = {
-  name: workspaceName
-}
-*/
 
+// Creating FHIR service at Workspace
 resource FHIR 'Microsoft.HealthcareApis/workspaces/fhirservices@2021-11-01' = {
   name: fhirservicename
   location: location
@@ -106,6 +100,7 @@ resource FHIR 'Microsoft.HealthcareApis/workspaces/fhirservices@2021-11-01' = {
     ]
 }
 
+// Defining FHIR Diagnostic Settings
 resource FHIR_diagnosticSettings 'Microsoft.Insights/diagnosticsettings@2021-05-01-preview' = {
   name: diagnosticSettingsName
   properties: {
@@ -116,6 +111,7 @@ resource FHIR_diagnosticSettings 'Microsoft.Insights/diagnosticsettings@2021-05-
   scope: FHIR
 }
 
+// Outputs
 output fhirServiceURL string = audience
 output fhirID string = FHIR.id
 output fhirWorkspaceID string = Workspace.id

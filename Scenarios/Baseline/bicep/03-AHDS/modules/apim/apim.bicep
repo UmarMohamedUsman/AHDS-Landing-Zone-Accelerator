@@ -1,9 +1,5 @@
 targetScope = 'resourceGroup'
-
-/*
- * Input parameters
-*/
-
+// Parameters
 @description('The name of the API Management resource to be created.')
 param apimName string
 
@@ -60,6 +56,7 @@ param diagnosticMetricsToEnable array = [
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = '${apimName}-diagnosticSettings'
 
+// Variables
 var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
   category: category
   enabled: true
@@ -90,10 +87,7 @@ var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
   }
 }]
 
-/*
- * Resources
-*/
-
+// Creating APIM Service
 resource apimName_resource 'Microsoft.ApiManagement/service@2020-12-01' = {
   name: apimName
   location: location
@@ -111,6 +105,7 @@ resource apimName_resource 'Microsoft.ApiManagement/service@2020-12-01' = {
   }
 }
 
+// Defining Application Insights for APIM
 resource apimName_appInsightsLogger_resource 'Microsoft.ApiManagement/service/loggers@2019-01-01' = {
   parent: apimName_resource
   name: appInsightsName
@@ -123,6 +118,7 @@ resource apimName_appInsightsLogger_resource 'Microsoft.ApiManagement/service/lo
   }
 }
 
+// Configuring App Insights for APIM
 resource apimName_applicationinsights 'Microsoft.ApiManagement/service/diagnostics@2019-01-01' = {
   parent: apimName_resource
   name: 'applicationinsights'
@@ -136,6 +132,7 @@ resource apimName_applicationinsights 'Microsoft.ApiManagement/service/diagnosti
   }
 }
 
+// Defining APIM Diagnostic Settings
 resource apiManagementService_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: diagnosticSettingsName
   properties: {
@@ -146,4 +143,5 @@ resource apiManagementService_diagnosticSettings 'Microsoft.Insights/diagnosticS
   scope: apimName_resource
 }
 
+// Outputs
 output apimName string = apimName_resource.name

@@ -1,4 +1,5 @@
 
+// Parameters
 param location string
 param serviceUrl string
 param APIpath string = 'fhir'
@@ -8,7 +9,7 @@ param APIMName string
 param RGName string
 param managedIdentity object
 
-
+// Loading APIM API, since it requires to replace the backend Access at the API level, we are using Powershell with deployment scripts to load the Swagger API File and replace it prior to import at the APIM.
 resource appGatewayCertificate 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   name: 'APIM-import-API'
   location: location

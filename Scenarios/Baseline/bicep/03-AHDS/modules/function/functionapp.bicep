@@ -1,3 +1,4 @@
+// Parameters
 param functionAppName string
 param location string
 param hostingPlanName string
@@ -31,6 +32,7 @@ param diagnosticMetricsToEnable array = [
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = '${functionAppName}-diagnosticSettings-001'
 
+// Variables
 var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
   category: category
   enabled: true
@@ -64,20 +66,24 @@ var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
 var runtime  = 'dotnet'
 var repourl  = 'https://github.com/microsoft/fhir-loader'
 
+// Defining App Service Host Plan
 resource hostingPlan 'Microsoft.Web/serverfarms@2022-03-01' existing = {
   name: hostingPlanName
 }
 
+// Defining Storage Account
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' existing = {
   name: storageAccountName
  //scope: resourceGroup(subscription().subscriptionId, RG)
 }
 
 
+// Creating File Share at Storage Account
 resource functionContentShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021-04-01' = {
   name: '${storageAccount.name}/default/${functionContentShareName}'
 }
 
+// Creating Function App
 resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
   name: functionAppName
   location: location
@@ -172,6 +178,7 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
   }
 }
 
+// Deploing Function App Code from GitHub RepoURL
 resource functiondeploy 'Microsoft.Web/sites/sourcecontrols@2022-03-01' = {
   name: 'web'
   kind: 'sourcecontrols'
@@ -183,6 +190,7 @@ resource functiondeploy 'Microsoft.Web/sites/sourcecontrols@2022-03-01' = {
   }
 }
 
+// Defining Diagnostic Settings for Function App
 resource functionApp_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: diagnosticSettingsName
   properties: {
@@ -193,5 +201,6 @@ resource functionApp_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2
   scope: functionApp
 }
 
+// Outputs
 output fnappidentity string = functionApp.identity.principalId
 output fnappid string = functionApp.id
