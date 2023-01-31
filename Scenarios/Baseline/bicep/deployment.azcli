@@ -1,7 +1,21 @@
 cd Scenarios/Baseline/bicep
 
+# Registering Resource Providers
+az provider register --namespace Microsoft.Network
+az provider register --namespace Microsoft.Compute
+az provider register --namespace Microsoft.ContainerInstance
+az provider register --namespace Microsoft.KeyVault
+az provider register --namespace Microsoft.ManagedIdentity
+az provider register --namespace Microsoft.Storage
+az provider register --namespace Microsoft.HealthcareApis
+az provider register --namespace Microsoft.Diagnostics
+az provider register --namespace Microsoft.ContainerRegistry
+az provider register --namespace Microsoft.Web
+
 # AZ CLI
 # 01-Network-Hub
+# *** The JumpBox VM User Name and Password will be auto generated and will be saved at the Key Vault under HUB Resource Group
+# You have to give yourself access in order to read the both Secrets with username and password
 az deployment sub create -n "ESLZ-HUB-AHDS" -l "EastUS" -f 01-Network-Hub/main.bicep -p 01-Network-Hub/parameters-main.json
 az deployment sub create -n "ESLZ-AHDS-HUB-UDR" -l "EastUS" -f 01-Network-Hub/updateUDR.bicep -p 01-Network-Hub/parameters-updateUDR.json
 az deployment sub create -n "ESLZ-HUB-VM" -l "EastUS" -f 01-Network-Hub/deploy-vm.bicep -p 01-Network-Hub/parameters-deploy-vm.json
