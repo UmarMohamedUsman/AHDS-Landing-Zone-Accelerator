@@ -12,6 +12,31 @@ az provider register --namespace Microsoft.Diagnostics
 az provider register --namespace Microsoft.ContainerRegistry
 az provider register --namespace Microsoft.Web
 
+# Checking registration status
+az provider show --namespace Microsoft.Network
+az provider show --namespace Microsoft.Compute
+az provider show --namespace Microsoft.ContainerInstance
+az provider show --namespace Microsoft.KeyVault
+az provider show --namespace Microsoft.ManagedIdentity
+az provider show --namespace Microsoft.Storage
+az provider show --namespace Microsoft.HealthcareApis
+az provider show --namespace Microsoft.Diagnostics
+az provider show --namespace Microsoft.ContainerRegistry
+az provider show --namespace Microsoft.Web
+
+# To see the resource types for a resource provider
+az provider show --namespace Microsoft.Network --query "resourceTypes[*].resourceType" --out table
+az provider show --namespace Microsoft.Compute --query "resourceTypes[*].resourceType" --out table
+az provider show --namespace Microsoft.ContainerInstance --query "resourceTypes[*].resourceType" --out table
+az provider show --namespace Microsoft.KeyVault --query "resourceTypes[*].resourceType" --out table
+az provider show --namespace Microsoft.ManagedIdentity --query "resourceTypes[*].resourceType" --out table
+az provider show --namespace Microsoft.Storage --query "resourceTypes[*].resourceType" --out table
+az provider show --namespace Microsoft.HealthcareApis --query "resourceTypes[*].resourceType" --out table
+az provider show --namespace Microsoft.Diagnostics --query "resourceTypes[*].resourceType" --out table
+az provider show --namespace Microsoft.ContainerRegistry --query "resourceTypes[*].resourceType" --out table
+az provider show --namespace Microsoft.Web --query "resourceTypes[*].resourceType" --out table
+
+
 # AZ CLI
 # 01-Network-Hub
 # *** The JumpBox VM User Name and Password will be auto generated and will be saved at the Key Vault under HUB Resource Group
