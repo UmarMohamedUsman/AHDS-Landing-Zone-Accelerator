@@ -1,3 +1,4 @@
+// Parameters
 param keyVaultName            string
 param managedIdentity         object
 param location                string
@@ -6,12 +7,14 @@ param appGatewayFQDN          string
 param certPassword            string
 param appGatewayCertType      string
 
+// Variables
 var secretName = replace(appGatewayFQDN,'.', '-')
 var subjectName='CN=${appGatewayFQDN}'
 
 var certData = appGatewayCertType == 'selfsigned' ? 'null' : loadFileAsBase64('../vnet/certs/appgw.pfx')
 var certPwd = appGatewayCertType == 'selfsigned' ? 'null' : certPassword == '' ? 'nullnopass' : certPassword
 
+// Giving Access to Key Vault (Using AppGW Identity)
 resource accessPolicyGrant 'Microsoft.KeyVault/vaults/accessPolicies@2019-09-01' = {
   name: '${keyVaultName}/add'
   properties: {
@@ -37,6 +40,7 @@ resource accessPolicyGrant 'Microsoft.KeyVault/vaults/accessPolicies@2019-09-01'
   }
 }
 
+// Generating/Loading Certificate for Application Gateway using deployment Scripts (It will temporaly give access to the Deployment Script ACI at the Key Vault Firewall so it can push the certificate to Key Vault)
 resource appGatewayCertificate 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   name: '${secretName}-certificate'
   dependsOn: [
@@ -151,6 +155,7 @@ resource appGatewayCertificate 'Microsoft.Resources/deploymentScripts@2020-10-01
   }
 }
 
+// Generate Secret URI URL
 module appGatewaySecretsUri 'certificateSecret.bicep' = {
   name: '${secretName}-certificate'
   dependsOn: [
@@ -162,4 +167,5 @@ module appGatewaySecretsUri 'certificateSecret.bicep' = {
   }
 }
 
+// Outputs
 output secretUri string = appGatewaySecretsUri.outputs.secretUri

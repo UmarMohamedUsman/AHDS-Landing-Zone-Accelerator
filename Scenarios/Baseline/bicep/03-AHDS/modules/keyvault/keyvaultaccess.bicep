@@ -1,8 +1,8 @@
-//targetScope= 'subscription'
+// Parameters
 param keyvaultManagedIdentityObjectId string
 param vaultName string
-//param useraccessprincipalId string
 
+// Giving Access to MI at Key Vault
 resource keyvaultaccesspolicy 'Microsoft.KeyVault/vaults/accessPolicies@2021-06-01-preview' = {
   name: '${vaultName}/add'
   properties: {

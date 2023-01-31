@@ -1,3 +1,4 @@
+// Parameters
 param appgwname string
 param subnetid string
 param appgwpip string
@@ -6,18 +7,13 @@ param appGwyAutoScale object
 param appGatewayFQDN string = 'api.example.com'
 param primaryBackendEndFQDN string
 param appGatewayIdentityId string
-var frontendPortNameHTTP = 'HTTP-80'
-var frontendPortNameHTTPs = 'HTTPs-443'
-var frontendIPConfigurationName = 'appGatewayFrontendIP'
-var httplistenerName = 'httplistener'
-var httpslistenerName = 'httpslistener'
-var backendAddressPoolName = 'backend-add-pool'
-var backendHttpSettingsCollectionName = 'backend-http-settings'
-var backendHttpsSettingsCollectionName = 'backend-https-settings'
+
 @secure()
 param keyVaultSecretId string
+
 param availabilityZones array
 param probeUrl string = '/status-0123456789abcdef'
+
 @description('Optional. Specifies the number of days that logs will be kept for; a value of 0 will retain data indefinitely.')
 @minValue(0)
 @maxValue(365)
@@ -47,6 +43,16 @@ param diagnosticMetricsToEnable array = [
 
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = '${appgwname}-diagnosticSettings-001'
+
+// Variables
+var frontendPortNameHTTP = 'HTTP-80'
+var frontendPortNameHTTPs = 'HTTPs-443'
+var frontendIPConfigurationName = 'appGatewayFrontendIP'
+var httplistenerName = 'httplistener'
+var httpslistenerName = 'httpslistener'
+var backendAddressPoolName = 'backend-add-pool'
+var backendHttpSettingsCollectionName = 'backend-http-settings'
+var backendHttpsSettingsCollectionName = 'backend-https-settings'
 
 var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
   category: category
@@ -78,6 +84,7 @@ var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
   }
 }]
 
+// Creating Application Gateway
 resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
   name: appgwname
   location: location
@@ -273,6 +280,7 @@ resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
   }
 }
 
+// Defining Application Gateway Diagnostic Settings
 resource applicationGateway_diagnosticSettingName 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: diagnosticSettingsName
   properties: {

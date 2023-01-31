@@ -1,3 +1,4 @@
+// Parameters
 param name string
 param keyVaultsku string
 param tenantId string
@@ -33,9 +34,7 @@ param diagnosticMetricsToEnable array = [
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = '${name}-diagnosticSettings-001'
 
-// =========== //
-// Variables   //
-// =========== //
+// Variables
 var diagnosticsLogsSpecified = [for category in filter(diagnosticLogCategoriesToEnable, item => item != 'allLogs'): {
   category: category
   enabled: true
@@ -66,6 +65,7 @@ var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
   }
 }]
 
+// Creating Key Vault
 resource keyvault 'Microsoft.KeyVault/vaults@2019-09-01' = {
   name: name
   location: location
@@ -86,6 +86,7 @@ resource keyvault 'Microsoft.KeyVault/vaults@2019-09-01' = {
   }
 }
 
+// Defining Key Vault diagnostic Settings
 resource keyVault_diagnosticSettings 'Microsoft.Insights/diagnosticsettings@2021-05-01-preview' = {
   name: diagnosticSettingsName
   properties: {
@@ -96,5 +97,6 @@ resource keyVault_diagnosticSettings 'Microsoft.Insights/diagnosticsettings@2021
   scope: keyvault
 }
 
+// Outputs
 output keyvaultId string = keyvault.id
 output keyvaultName string = keyvault.name

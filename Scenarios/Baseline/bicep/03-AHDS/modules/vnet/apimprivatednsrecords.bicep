@@ -1,17 +1,14 @@
+// Paramters
 param apimName                  string
 param RG                        string
 
-/*
- Retrieve APIM and Virtual Network
-*/
-
+// Defining API<
 resource apim 'Microsoft.ApiManagement/service@2020-12-01' existing = {
   name: apimName
   scope: resourceGroup(RG)
 }
 
-// A Records
-
+// Creating APIM DNS Record
 resource gatewayRecord 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   name: 'azure-api.net/${apimName}'
   properties: {
@@ -24,6 +21,7 @@ resource gatewayRecord 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   }
 }
 
+// Creating APIM Portal DNS Record
 resource portalRecord 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   name: 'portal.azure-api.net/${apimName}'
   properties: {
@@ -36,6 +34,7 @@ resource portalRecord 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   }
 }
 
+// Creating APIM Developer DNS Record
 resource developerRecord 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   name: 'developer.azure-api.net/${apimName}'
   properties: {
@@ -48,6 +47,7 @@ resource developerRecord 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   }
 }
 
+// Creating APIM Magements DNS Record
 resource managementRecord 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   name: 'management.azure-api.net/${apimName}'
   properties: {
@@ -60,6 +60,7 @@ resource managementRecord 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   }
 }
 
+// Creating APIM SCM DNS Record
 resource scmRecord 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   name: 'scm.azure-api.net/${apimName}'
   properties: {

@@ -1,3 +1,4 @@
+// Parameters
 @description('Storage Account type')
 @allowed([
   'Premium_LRS'
@@ -31,6 +32,7 @@ param diagnosticMetricsToEnable array = [
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = '${storageAccountName}-diagnosticSettings-001'
 
+// Variables
 var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
   category: metric
   timeGrain: null
@@ -40,6 +42,8 @@ var diagnosticsMetrics = [for metric in diagnosticMetricsToEnable: {
     days: diagnosticLogsRetentionInDays
   }
 }]
+
+// Creating Storage Account
 resource sa 'Microsoft.Storage/storageAccounts@2021-06-01' = {
   name: storageAccountName
   location: location
@@ -50,8 +54,10 @@ resource sa 'Microsoft.Storage/storageAccounts@2021-06-01' = {
   properties: {}
 }
 
+// Variable
 var storagecnnstrng = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${sa.listKeys().keys[0].value}'
 
+// Defining Storage Account diagnostic settings
 resource storageAccount_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: diagnosticSettingsName
   properties: {
