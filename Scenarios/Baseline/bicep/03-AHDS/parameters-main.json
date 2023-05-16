@@ -26,14 +26,14 @@
     "subnetName": {
       "value": "servicespe"
     },
-    "VNetIntegrationSubnetName":{
+    "VNetIntegrationSubnetName": {
       "value": "VNetIntegration"
     },
     "APIMsubnetName": {
       "value": "APIM"
     },
     "APIMName": {
-      "value": "APIM-AHDS-vws"
+      "value": "APIM-AHDS"
     },
     "privateDNSZoneSAfileName": {
       "value": "privatelink.file.core.windows.net"
@@ -63,25 +63,21 @@
       }
     },
     "availabilityZones": {
-      "value": [
-        "1",
-        "2",
-        "3"
-      ]
+      "value": ["1", "2", "3"]
     },
     "appGatewaySubnetName": {
       "value": "AppGWSubnet"
     },
-    "appGatewayFQDN" :{
+    "appGatewayFQDN": {
       "value": "api.example.com"
     },
-    "appGatewayCertType" :{
-        "value": "selfsigned"
+    "appGatewayCertType": {
+      "value": "selfsigned"
     },
     "certPassword": {
       "value": "ENTER PASSWORD"
     },
-    "primaryBackendEndFQDN":{
+    "primaryBackendEndFQDN": {
       "value": "APIM-AHDS.azure-api.net"
     },
     "hostingPlanName": {
@@ -93,7 +89,7 @@
     "privateDNSZoneFHIRName": {
       "value": "privatelink.azurehealthcareapis.com"
     },
-    "functionAppName":{
+    "functionAppName": {
       "value": "FunctionApp-AHDS2"
     },
     "ApiUrlPath": {
