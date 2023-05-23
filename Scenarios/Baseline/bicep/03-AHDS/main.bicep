@@ -499,7 +499,7 @@ module hostingPlan 'modules/function/hostingplan.bicep' = {
 }
 
 // Creating Storage Container
-module container 'modules/Storage/container.bicep' = [for name in containerNames: {
+module container 'modules/storage/container.bicep' = [for name in containerNames: {
   scope: resourceGroup(rg.name)
   name: '${name}'
   params: {
@@ -509,7 +509,7 @@ module container 'modules/Storage/container.bicep' = [for name in containerNames
 }]
 
 // Creating Storage file share
-module functioncontentfileshare 'modules/Storage/fileshare.bicep' = {
+module functioncontentfileshare 'modules/storage/fileshare.bicep' = {
   scope: resourceGroup(rg.name)
   name: functionContentShareName
   params: {
