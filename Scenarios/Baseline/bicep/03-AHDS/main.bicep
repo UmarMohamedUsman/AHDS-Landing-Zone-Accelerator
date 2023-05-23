@@ -509,7 +509,7 @@ module container 'modules/storage/container.bicep' = [for name in containerNames
 }]
 
 // Creating Storage file share
-module functioncontentfileshare 'modules/Storage/fileshare.bicep' = {
+module functioncontentfileshare 'modules/storage/fileshare.bicep' = {
   scope: resourceGroup(rg.name)
   name: functionContentShareName
   params: {
