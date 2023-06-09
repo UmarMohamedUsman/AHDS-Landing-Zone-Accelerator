@@ -13,6 +13,8 @@ param APIMsubnetName string
 param VNetIntegrationSubnetName string
 param APIMName string
 param privateDNSZoneSAfileName string
+param privateDNSZoneSAtableName string
+param privateDNSZoneSAqueueName string
 param privateDNSZoneACRName string
 param privateDNSZoneKVName string
 param privateDNSZoneSAName string
@@ -40,6 +42,9 @@ param containerNames array = [
   'export'
   'export-trigger'
 ]
+
+
+
 param hostingPlanName string
 param fhirName string
 param workspaceName string = 'eslzwks${uniqueString('workspacevws', utcNow('u'))}'
@@ -267,7 +272,7 @@ module privateEndpointSAtable 'modules/vnet/privateendpoint.bicep' = {
 // Defining Storage Account Private DNS Zone Table
 resource privateDNSZoneSAtable 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: resourceGroup(rg.name)
-  name: privateDNSZoneSAfileName
+  name: privateDNSZoneSAtableName
 }
 
 // Creating Private Endpoint DNS Settings for Storage Account Table
@@ -299,7 +304,7 @@ module privateEndpointSAqueue 'modules/vnet/privateendpoint.bicep' = {
 // Defining Storage Account Private DNS Zone Queue
 resource privateDNSZoneSAqueue 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   scope: resourceGroup(rg.name)
-  name: privateDNSZoneSAfileName
+  name: privateDNSZoneSAqueueName
 }
 
 // Creating Private Endpoint DNS Settings for Storage Account Queue
@@ -508,6 +513,27 @@ module container 'modules/storage/container.bicep' = [for name in containerNames
   }
 }]
 
+// Creating ndjsonqueue Storage Queue
+module ndjsonqueue 'modules/storage/queue.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'ndjsonqueue'
+  params: {
+    queueName: 'ndjsonqueue'
+    storageAccountName: storage.outputs.storageAccountName
+  }
+}
+
+module bundlequeue 'modules/storage/queue.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'bundlequeue'
+  params: {
+    queueName: 'bundlequeue'
+    storageAccountName: storage.outputs.storageAccountName
+  }
+}
+
+
+
 // Creating Storage file share
 module functioncontentfileshare 'modules/storage/fileshare.bicep' = {
   scope: resourceGroup(rg.name)
@@ -670,6 +696,34 @@ module privateEndpointFunctionAppDNSSetting 'modules/vnet/privatedns.bicep' = {
     privateEndpointName: privateEndpointFunctionApp.name
   }
 }
+
+
+
+module bundleeventsub 'modules/storage/eventsub.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'bundlequeuesub'
+  params: {
+    queueName: 'bundlequeue'
+    storageAccountName: storage.outputs.storageAccountName
+  }
+  dependsOn: [
+    bundlequeue
+  ]
+}
+
+module ndjsoneventsub 'modules/storage/eventsub.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'ndjsonqueuesub'
+  params: {
+    queueName: 'ndjsonqueue'
+    storageAccountName: storage.outputs.storageAccountName
+  }
+  dependsOn: [
+    ndjsonqueue
+  ]
+}
+
+
 
 // Outputs
 output acrName string = acr.name

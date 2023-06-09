@@ -51,7 +51,12 @@ resource sa 'Microsoft.Storage/storageAccounts@2021-06-01' = {
     name: storageAccountType
   }
   kind: 'StorageV2'
-  properties: {}
+  properties: {
+    
+  }
+  resource queueService 'queueServices' = {
+    name: 'default'
+  }
 }
 
 // Variable
