@@ -8,6 +8,8 @@ param storageAccountName string
 param fnIdentityId string
 param VNetIntegrationSubnetID string
 param kvname string
+param authenticationType string
+
 
 @description('Optional. Specifies the number of days that logs will be kept for; a value of 0 will retain data indefinitely.')
 @minValue(0)
@@ -123,11 +125,11 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
         }
         {
           name: 'AzureWebJobs.ImportBundleBlobTrigger.Disabled'
-          value: '0'
+          value: '1'
         }
         {
           name: 'AzureWebJobs.ImportBundleEventGrid.Disabled'
-          value: '1'
+          value: '0'
         }
         {
           name: 'FBI-TRANSFORMBUNDLES'
@@ -137,7 +139,10 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
           name: 'FBI-POOLEDCON-MAXCONNECTIONS'
           value: '20'
         }
-
+        {
+          name: 'FBI-POISONQUEUE-TIMER-CRON'
+          value: '0 */2 * * * *'
+        }
         {
           name: 'FBI-STORAGEACCT'
           value: '@Microsoft.KeyVault(VaultName=${kvname};SecretName=FBI-STORAGEACCT)'
@@ -167,6 +172,22 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
         name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
         value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
         }
+        {
+        name: 'FS-ISMSI'
+        value: authenticationType == 'managedIdentity' ? 'true' : 'false'
+        }
+        {
+          name: 'AzureFunctionsJobHost__functionTimeout'
+          value: '23:00:00'
+        }
+        {
+          name: 'FS-CLIENT-ID'
+          value: authenticationType == 'servicePrincipal' ? '@Microsoft.KeyVault(VaultName=${kvname};SecretName=FS-CLIENT-ID)' : ''
+        }
+        {
+          name: 'FS-SECRET'
+          value: authenticationType == 'servicePrincipal' ? '@Microsoft.KeyVault(VaultName=${kvname};SecretName=FS-SECRET)' : ''
+        }
       ]
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'
@@ -177,6 +198,8 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
     redundancyMode: 'None'
   }
 }
+
+
 
 // Deploing Function App Code from GitHub RepoURL
 resource functiondeploy 'Microsoft.Web/sites/sourcecontrols@2022-03-01' = {
@@ -200,6 +223,7 @@ resource functionApp_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2
   }
   scope: functionApp
 }
+
 
 // Outputs
 output fnappidentity string = functionApp.identity.principalId
