@@ -31,6 +31,9 @@ param availabilityZones array
 param appGwyAutoScale object
 param appGatewayFQDN string
 param primaryBackendEndFQDN string
+@allowed([ 'managedIdentity', 'servicePrincipal' ])
+@description('Type of FHIR instance to integrate the loader with.')
+param authenticationType string = 'managedIdentity'
 @description('Set to selfsigned if self signed certificates should be used for the Application Gateway. Set to custom and copy the pfx file to vnet/certs/appgw.pfx if custom certificates are to be used')
 param appGatewayCertType string
 @secure()
@@ -50,6 +53,8 @@ param fhirName string
 param workspaceName string = 'eslzwks${uniqueString('workspacevws', utcNow('u'))}'
 param functionAppName string
 param ApiUrlPath string
+
+
 
 // Variables
 //var acrName = 'eslzacr${uniqueString(rgName, deployment().name)}'
@@ -459,6 +464,8 @@ module fhir 'modules/ahds/fhirservice.bicep' = {
   }
 }
 
+
+
 // Creating FHIR Private Endpoint
 module privateEndpointFHIR 'modules/vnet/privateendpoint.bicep' = {
   scope: resourceGroup(rg.name)
@@ -653,6 +660,7 @@ module functionApp 'modules/function/functionapp.bicep' = {
     kvname: keyvault.outputs.keyvaultName
     fnIdentityId: fnIdentity.outputs.identityid
     diagnosticWorkspaceId: logAnalyticsWorkspace.id
+    authenticationType: authenticationType
   }
   dependsOn: [
     kvaccess
@@ -663,6 +671,18 @@ module functionApp 'modules/function/functionapp.bicep' = {
     fsreskvsecret
     sakvsecret
   ]
+}
+
+// Creating role for Function App identity on FHIR
+module fhirrole 'modules/Identity/fhirrole.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'fhirrole'
+  params: {
+    principalId: functionApp.outputs.fnappidentity
+    roleGuid: '5a1fc7df-4bf1-4951-a576-89034ee01acd'
+    fhirName: fhir.name
+    workspaceName: workspaceName
+  }
 }
 
 // Creating Function App Private Endpoint
@@ -705,6 +725,8 @@ module bundleeventsub 'modules/storage/eventsub.bicep' = {
   params: {
     queueName: 'bundlequeue'
     storageAccountName: storage.outputs.storageAccountName
+    subjectbegins: '/blobServices/default/containers/bundles'
+    subjectends: '.json'
   }
   dependsOn: [
     bundlequeue
@@ -717,6 +739,8 @@ module ndjsoneventsub 'modules/storage/eventsub.bicep' = {
   params: {
     queueName: 'ndjsonqueue'
     storageAccountName: storage.outputs.storageAccountName
+    subjectbegins: '/blobServices/default/containers/ndjson'
+    subjectends: '.ndjson'
   }
   dependsOn: [
     ndjsonqueue

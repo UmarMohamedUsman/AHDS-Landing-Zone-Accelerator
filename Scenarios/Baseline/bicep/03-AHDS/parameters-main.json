@@ -33,7 +33,7 @@
       "value": "APIM"
     },
     "APIMName": {
-      "value": "SR2-APIM-AHDS"
+      "value": "SR4-APIM-AHDS"
     },
     "privateDNSZoneSAfileName": {
       "value": "privatelink.file.core.windows.net"
@@ -96,13 +96,16 @@
       "value": "privatelink.azurehealthcareapis.com"
     },
     "functionAppName": {
-      "value": "SR2-FunctionApp-AHDS2"
+      "value": "SR4-FunctionApp-AHDS2"
     },
     "ApiUrlPath": {
       "value": "https://raw.githubusercontent.com/Welasco/test/main/AHDS-Swagger.json"
     },
     "resourceSuffix": {
       "value": "AHDS"
-    }
+    },
+    "authenticationType":{ 
+      "value": "managedIdentity"
+  }
   }
 }

@@ -13,6 +13,7 @@ resource keyvaultaccesspolicy 'Microsoft.KeyVault/vaults/accessPolicies@2021-06-
           secrets: [
             'get'
             'list'
+            'set'
           ]
         }
         tenantId: subscription().tenantId

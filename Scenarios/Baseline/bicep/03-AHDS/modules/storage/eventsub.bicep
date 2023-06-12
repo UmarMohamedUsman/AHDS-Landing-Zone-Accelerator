@@ -1,5 +1,7 @@
 param storageAccountName string
 param queueName string
+param subjectbegins string
+param subjectends string
 
 // defining Storage Account
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' existing = {
@@ -8,7 +10,8 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' existing 
 
 
 resource ndjsonSubscription 'Microsoft.EventGrid/eventSubscriptions@2022-06-15' = {
-  name: 'ndjsoncreated'
+  scope: storageAccount
+  name: queueName
   properties: {
     destination: {
       endpointType: 'StorageQueue'
@@ -29,8 +32,8 @@ resource ndjsonSubscription 'Microsoft.EventGrid/eventSubscriptions@2022-06-15' 
           // For remaining properties, see AdvancedFilter objects
         }
       ]
-      subjectBeginsWith: '/blobServices/default/containers/ndjson'
-      subjectEndsWith: '.ndjson'
+      subjectBeginsWith: subjectbegins
+      subjectEndsWith: subjectends
     }
   }
 }
