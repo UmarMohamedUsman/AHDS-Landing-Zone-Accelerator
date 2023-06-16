@@ -16,6 +16,8 @@ param rtAppGWSubnetName string
 param dhcpOptions object
 param location string = deployment().location
 param resourceSuffix string
+param appGatewaySubnetName string
+param FHIRSubnetName string
 
 // Defining logAnalyticsWorkspace
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06-01' existing = {
@@ -476,4 +478,46 @@ module appgwroutetable 'modules/vnet/routetable.bicep' = {
     location: location
     rtName: rtAppGWSubnetName
   }
+}
+resource appgwSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
+  scope: resourceGroup(rg.name)
+  name: '${vnetSpokeName}/${appGatewaySubnetName}'
+}
+
+module updateappgwNSG 'modules/vnet/attachNsg.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'AppGWSubnetNamensgupdate'
+  params: {
+    rtId: appgwroutetable.outputs.routetableID
+    vnetName: vnetSpokeName
+    subnetName: appGatewaySubnetName
+    nsgId: nsgappgwsubnet.outputs.nsgID
+    subnetAddressPrefix: appgwSubnet.properties.addressPrefix
+    serviceep: 'Microsoft.Storage'
+  }
+  dependsOn: [
+    vnetspoke
+  ]
+}
+
+resource fhirSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
+  scope: resourceGroup(rg.name)
+  name: '${vnetSpokeName}/${FHIRSubnetName}'
+}
+
+module updatefhirNSG 'modules/vnet/attachNsg.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'FhirSubnetNamensgupdate'
+  params: {
+    rtId: routetable.outputs.routetableID
+    vnetName: vnetSpokeName
+    subnetName: FHIRSubnetName
+    nsgId: nsgfhirsubnet.outputs.nsgID
+    subnetAddressPrefix: fhirSubnet.properties.addressPrefix
+    
+  }
+  dependsOn: [
+    vnetspoke
+    updateappgwNSG
+  ]
 }

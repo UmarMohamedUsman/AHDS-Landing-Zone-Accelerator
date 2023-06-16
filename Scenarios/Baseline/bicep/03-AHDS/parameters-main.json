@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "rgName": {
-      "value": "ESLZ-AHDS-SPOKE1"
+      "value": "ESLZ-AHDS-SPOKE"
     },
     "rgHubName": {
       "value": "ESLZ-AHDS-HUB"
@@ -33,7 +33,7 @@
       "value": "APIM"
     },
     "APIMName": {
-      "value": "SR4-APIM-AHDS"
+      "value": "APIM-AHDS"
     },
     "privateDNSZoneSAfileName": {
       "value": "privatelink.file.core.windows.net"
@@ -81,7 +81,7 @@
       "value": "selfsigned"
     },
     "certPassword": {
-      "value": "CIOPASS1ciopass1"
+      "value": "ENTER PASSWORD"
     },
     "primaryBackendEndFQDN": {
       "value": "APIM-AHDS.azure-api.net"
@@ -96,7 +96,7 @@
       "value": "privatelink.azurehealthcareapis.com"
     },
     "functionAppName": {
-      "value": "SR4-FunctionApp-AHDS2"
+      "value": "FunctionApp-AHDS"
     },
     "ApiUrlPath": {
       "value": "https://raw.githubusercontent.com/Welasco/test/main/AHDS-Swagger.json"
