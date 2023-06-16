@@ -59,6 +59,7 @@ param ApiUrlPath string
 // Variables
 //var acrName = 'eslzacr${uniqueString(rgName, deployment().name)}'
 //var keyvaultName = 'eslz-kv-${uniqueString(rgName, deployment().name)}'
+var storageFQDN = '${storageAccountName}.blob.core.windows.net'
 var audience = 'https://${workspaceName}-${fhirName}.fhir.azurehealthcareapis.com'
 var functionContentShareName = 'function'
 
@@ -401,6 +402,9 @@ module kvrole 'modules/Identity/kvrole.bicep' = {
   }
 }
 
+
+
+
 // Generating/Loading certificate to Azure Key Vault (Depending in the parameters it can load or generete a new Self-Signed certificate)
 module certificate 'modules/vnet/certificate.bicep' = {
   name: 'certificate'
@@ -434,9 +438,10 @@ module appgw 'modules/vnet/appgw.bicep' = {
     keyVaultSecretId: certificate.outputs.secretUri
     primaryBackendEndFQDN: primaryBackendEndFQDN
     diagnosticWorkspaceId: logAnalyticsWorkspace.id
+    storageFQDN: storageFQDN
   }
   dependsOn: [
-    apimImportAPI
+   apimImportAPI
   ]
 }
 
@@ -449,6 +454,16 @@ module apimrole 'modules/Identity/apimrole.bicep' = {
     principalId: appgwIdentity.outputs.azidentity.properties.principalId
     roleGuid: '312a565d-c81f-4fd8-895a-4e21e48d571c' //APIM Contributor
     apimName: apimModule.outputs.apimName
+  }
+}
+
+module sarole 'modules/Identity/sarole.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'sarole'
+  params: {
+    principalId: appgwIdentity.outputs.azidentity.properties.principalId
+    roleGuid: '17d1049b-9a84-46fb-8f53-869881c3d3ab' //APIM Contributor
+    storageAccountName: storage.name
   }
 }
 
@@ -747,6 +762,23 @@ module ndjsoneventsub 'modules/storage/eventsub.bicep' = {
   ]
 }
 
+module storageNetworkUpdate 'modules/storage/sanetwork-deploymentScript.bicep' = {
+  name: 'storageNetworkUpdate'
+  scope: resourceGroup(rg.name)
+  params: {
+    managedIdentity: appgwIdentity.outputs.azidentity
+    location: location
+    RGName: rg.name
+    subnet: appgwSubnet.id
+    storageAccountName: storageAccountName
+  }
+  dependsOn: [
+    ndjsonqueue
+    bundleeventsub 
+    appgw
+    sarole
+  ]
+}
 
 
 // Outputs

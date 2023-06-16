@@ -22,6 +22,7 @@
           "name": "default",
           "properties": {
             "addressPrefix": "10.1.0.0/24"
+            
           }
         },
         {
@@ -33,7 +34,12 @@
         {
           "name": "AppGWSubnet",
           "properties": {
-            "addressPrefix": "10.1.2.0/27"
+            "addressPrefix": "10.1.2.0/27",
+            "serviceEndpoints": [
+              {
+                "service": "Microsoft.Storage"
+              }
+            ]
           }
         },
         {
@@ -71,6 +77,9 @@
         }
       ]
     },
+    "appGatewaySubnetName":{
+      "value": "AppGWSubnet"
+    },
     "rtFHIRSubnetName": {
       "value": "FHIR-RT"
     },
@@ -88,6 +97,9 @@
     },
     "nsgFHIRName": {
       "value": "FHIR-NSG"
+    },
+    "FHIRSubnetName": {
+      "value": "FHIR"
     },
     "nsgAppGWName": {
       "value": "APPGW-NSG"

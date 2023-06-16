@@ -59,6 +59,8 @@ resource sa 'Microsoft.Storage/storageAccounts@2021-06-01' = {
   }
 }
 
+
+
 // Variable
 var storagecnnstrng = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${sa.listKeys().keys[0].value}'
 
@@ -75,3 +77,4 @@ resource storageAccount_diagnosticSettings 'Microsoft.Insights/diagnosticSetting
 output storageAccountName string = sa.name
 output storageAccountId string = sa.id
 output storagecnn string = storagecnnstrng
+output storageFQDN string =sa.properties.primaryEndpoints.blob

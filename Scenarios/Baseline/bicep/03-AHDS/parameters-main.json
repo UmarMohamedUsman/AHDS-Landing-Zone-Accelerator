@@ -33,7 +33,7 @@
       "value": "APIM"
     },
     "APIMName": {
-      "value": "SR4-APIM-AHDS"
+      "value": "SR12-APIM-AHDS"
     },
     "privateDNSZoneSAfileName": {
       "value": "privatelink.file.core.windows.net"
@@ -84,7 +84,7 @@
       "value": "CIOPASS1ciopass1"
     },
     "primaryBackendEndFQDN": {
-      "value": "APIM-AHDS.azure-api.net"
+      "value": "SR12-APIM-AHDS.azure-api.net"
     },
     "hostingPlanName": {
       "value": "HostingPlan-AHDS"
@@ -96,7 +96,7 @@
       "value": "privatelink.azurehealthcareapis.com"
     },
     "functionAppName": {
-      "value": "SR4-FunctionApp-AHDS2"
+      "value": "SR5-FunctionApp-AHDS2"
     },
     "ApiUrlPath": {
       "value": "https://raw.githubusercontent.com/Welasco/test/main/AHDS-Swagger.json"
