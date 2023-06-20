@@ -2,9 +2,7 @@
 
 This repo is for building secure landing zone accelerator for Azure Health Data Services (AHDS) and to integrate with various Azure Services.
 
-<!-- ![AHDS Ref Architecture](./media/AHDS%20Reference%20Architecture.png) -->
-
-<img src="./media/AHDS%20Reference%20Architecture.png" alt="AHDS Ref Architecture" background-color="white" >
+![ahds ref architecture](./media/ahds%20reference%20architecture.png)
 
 ### Introduction
 
@@ -12,14 +10,14 @@ Security is a paramount concern for Healthcare customers as they deal with Prote
 
 Currently we've no reference architecture in Azure Architecture Center for deploying AHDS and integrating with various Azure Services in a typical enterprise environment with security in mind. This has been a huge pain point for customers looking to deploy AHDS following Microsoft recommended best practices and continue to hinder AHDS adoption.
 
-### Use cases:
+### Use cases
 
 Once we have the reference architecture deployed successfully, we will be able to receive FHIR messages (individually/bulk) securely over a TLS connection through Application Gateway and successfully persist in AHDS. Then FHIR Sync Agent reads data from AHDS, convert to Parquet files and writes it to Azure Data Lake Gen2. Azure Synapse can connect to Data Lake to query and analyze FHIR data.
 
 - We can extend this to receive medical device/wearable data and persist in MedTech service and give insights to Doctors/Nurses (using Synapse)
 - We can extend this to ingest non FHIR data (HL7, C-CDA) and convert to FHIR and persist
 
-### Details:
+### Details
 
 - Typical Hub & Spoke network architecture to align with Cloud Adoption Framework Landing Zone design principles
 - Data hitting Application Gateway should be in FHIR format. Ingestion pipeline to transform HL7 v2 to FHIR or C-CDA to FHIR will be added to this architecture eventually
