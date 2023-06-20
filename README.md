@@ -2,7 +2,9 @@
 
 This repo is for building secure landing zone accelerator for Azure Health Data Services (AHDS) and to integrate with various Azure Services.
 
-![AHDS Landing Zone Architecture](./media/AHDS%20Reference%20Architecture.png)
+<!-- ![AHDS Ref Architecture](./media/AHDS%20Reference%20Architecture.png) -->
+
+<img src="./media/AHDS%20Reference%20Architecture.png" alt="AHDS Ref Architecture" background-color="white" >
 
 ### Introduction
 
